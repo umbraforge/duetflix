@@ -7,12 +7,12 @@
 
 import SwiftUI
 
-@main
+@main // uygulama burdan başlar 
 struct DuetFlixApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
-                .preferredColorScheme(.dark) // DuetFlix koyu mod varsayılan
+            HomeView()
+                .preferredColorScheme(.dark) // varsayılan mod koyu
         }
     }
 }
