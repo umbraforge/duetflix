@@ -1,0 +1,23 @@
+# macOS
+.DS_Store
+
+# Xcode
+## User settings
+xcuserdata/
+*.xcuserstate
+
+## Build products
+build/
+DerivedData/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+## Swift Package Manager
+.swiftpm/
+.build/
+
+## Secrets — API anahtarları git'e ASLA girmez
+Secrets.xcconfig

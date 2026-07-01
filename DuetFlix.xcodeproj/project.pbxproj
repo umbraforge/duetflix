@@ -8,6 +8,8 @@
 
 /* Begin PBXFileReference section */
 		473BE6F32FF4575E00FC2301 /* DuetFlix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuetFlix.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		47AAAA010000000000000001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Secrets.xcconfig; sourceTree = "<group>"; };
+		47AAAA020000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config/Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -32,9 +34,19 @@
 		473BE6EA2FF4575E00FC2301 = {
 			isa = PBXGroup;
 			children = (
+				47AAAA030000000000000003 /* Config */,
 				473BE6F52FF4575E00FC2301 /* DuetFlix */,
 				473BE6F42FF4575E00FC2301 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		47AAAA030000000000000003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				47AAAA010000000000000001 /* Secrets.xcconfig */,
+				47AAAA020000000000000002 /* Info.plist */,
+			);
+			name = Config;
 			sourceTree = "<group>";
 		};
 		473BE6F42FF4575E00FC2301 /* Products */ = {
@@ -248,6 +260,7 @@
 		};
 		473BE6FF2FF4575F00FC2301 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 47AAAA010000000000000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
@@ -257,6 +270,7 @@
 				DEVELOPMENT_TEAM = U9N9PJ4UHB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -281,6 +295,7 @@
 		};
 		473BE7002FF4575F00FC2301 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 47AAAA010000000000000001 /* Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
@@ -290,6 +305,7 @@
 				DEVELOPMENT_TEAM = U9N9PJ4UHB;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
