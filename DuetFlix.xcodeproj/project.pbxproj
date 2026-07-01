@@ -8,8 +8,8 @@
 
 /* Begin PBXFileReference section */
 		473BE6F32FF4575E00FC2301 /* DuetFlix.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DuetFlix.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		47AAAA010000000000000001 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Secrets.xcconfig; sourceTree = "<group>"; };
-		47AAAA020000000000000002 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config/Info.plist; sourceTree = "<group>"; };
+		47AAAA010000000000000001 /* Config/Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Secrets.xcconfig; sourceTree = "<group>"; };
+		47AAAA020000000000000002 /* Config/Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Config/Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -40,21 +40,21 @@
 			);
 			sourceTree = "<group>";
 		};
-		47AAAA030000000000000003 /* Config */ = {
-			isa = PBXGroup;
-			children = (
-				47AAAA010000000000000001 /* Secrets.xcconfig */,
-				47AAAA020000000000000002 /* Info.plist */,
-			);
-			name = Config;
-			sourceTree = "<group>";
-		};
 		473BE6F42FF4575E00FC2301 /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				473BE6F32FF4575E00FC2301 /* DuetFlix.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		47AAAA030000000000000003 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				47AAAA010000000000000001 /* Config/Secrets.xcconfig */,
+				47AAAA020000000000000002 /* Config/Info.plist */,
+			);
+			name = Config;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -141,7 +141,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -205,7 +205,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
@@ -260,7 +260,7 @@
 		};
 		473BE6FF2FF4575F00FC2301 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 47AAAA010000000000000001 /* Secrets.xcconfig */;
+			baseConfigurationReference = 47AAAA010000000000000001 /* Config/Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
@@ -295,7 +295,7 @@
 		};
 		473BE7002FF4575F00FC2301 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 47AAAA010000000000000001 /* Secrets.xcconfig */;
+			baseConfigurationReference = 47AAAA010000000000000001 /* Config/Secrets.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
