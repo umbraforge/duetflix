@@ -30,16 +30,12 @@ struct HomeView: View {
                             ProgressView("Yukleniyor")
                         case .loaded(let movies):
                             ScrollView {
-                                LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
-                                    ForEach(movies) { movie in
-                                        KFImage(movie.posterURL)
-                                            .placeholder { Color.umbraSurface }   // yüklenene kadar
-                                            .resizable()
-                                            .aspectRatio(2/3, contentMode: .fit)
-                                            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card))
-                                    }
+                                VStack(alignment: .leading, spacing: 16) {
+                                    FeaturedCarousel(movies: Array(movies.prefix(5)))   // ilk 5 film öne çıkan
+
+                                    MovieRow(title: "Popular", movies: Array(movies.dropFirst(5)))
+                                    
                                 }
-                                .padding()
                             }
                         case .error(let message):
                             Text("Hata: \(message)")
