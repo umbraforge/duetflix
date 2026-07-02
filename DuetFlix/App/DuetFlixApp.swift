@@ -11,8 +11,8 @@ import SwiftUI
 struct DuetFlixApp: App {
     var body: some Scene {
         WindowGroup {
-            HomeView()
-                .preferredColorScheme(.dark) // varsayılan mod koyu
+            RootView()
+                .preferredColorScheme(.dark)
         }
     }
 }
