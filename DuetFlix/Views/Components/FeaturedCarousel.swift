@@ -16,13 +16,18 @@ struct FeaturedCarousel: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 16) {
                     ForEach(movies) { movie in
-                        MovieCard(movie: movie)
-                            .frame(width: 220)                 // 260 → 220 (küçülttük)
-                            .scrollTransition { content, phase in
-                                content
-                                    .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
-                                    .opacity(phase.isIdentity ? 1.0 : 0.5)
-                            }
+                        NavigationLink {
+                            DetailView(movieID: movie.id)          // HEDEF: detay ekranı
+                        } label: {
+                            MovieCard(movie: movie)                // TIKLANAN: poster kartı
+                                .frame(width: 220)
+                                .scrollTransition { content, phase in
+                                    content
+                                        .scaleEffect(phase.isIdentity ? 1.0 : 0.85)
+                                        .opacity(phase.isIdentity ? 1.0 : 0.5)
+                                }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .scrollTargetLayout()

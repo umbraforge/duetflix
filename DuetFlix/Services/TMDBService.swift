@@ -10,6 +10,7 @@ import Foundation
 // sözleşme
 protocol TMDBService {
     func fetchPopular() async throws -> [Movie] // zarfı açıp sadece film listesini döndürüyoruz
+    func fetchDetail(id: Int) async throws -> MovieDetail // film id'sini alır ve detayını getirir
 }
 
 // Service, URL kurar client'e verir ve zarfı açar
@@ -23,5 +24,12 @@ struct TMDBServiceLive : TMDBService {
         // fetch T tipi döndürüyor, burda response : MovieResponse yaptığımızda T = MovieResponse olur
         let response : MovieResponse = try await client.fetch(url: url) // response : MovieResponse demezsek fetch T tipini bilemez
         return response.results // zarfı aç, sadece filmleri ver
+    }
+    func fetchDetail(id: Int) async throws -> MovieDetail {
+        guard let url = URL(string:
+            "https://api.themoviedb.org/3/movie/\(id)?language=en-US&append_to_response=credits,watch/providers")
+        else { throw APIError.invalidURL }
+
+        return try await client.fetch(url: url)
     }
 }

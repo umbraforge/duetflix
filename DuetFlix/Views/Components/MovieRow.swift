@@ -21,8 +21,12 @@ struct MovieRow: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     ForEach(movies) { movie in
-                        MovieCard(movie: movie)
-                            .frame(width: 120)
+                        NavigationLink {
+                            DetailView(movieID: movie.id)      // gidilecek ekran
+                        } label: {
+                            MovieCard(movie: movie)            // tıklanacak görünüm
+                                .frame(width: 120)
+                        }
                     }
                 }
                 .padding(.horizontal)
