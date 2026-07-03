@@ -7,11 +7,15 @@
 
 import SwiftUI
 import Kingfisher
+import SwiftData
 
 struct DetailView: View {
     let movieID: Int
     @State private var viewModel: DetailViewModel
-
+    @Environment(\.modelContext) private var context
+    @Query private var watchlist: [WatchlistItem]
+    @State private var toastMessage: String?
+    
     init(movieID: Int) {
         self.movieID = movieID
         _viewModel = State(initialValue: DetailViewModel(movieID: movieID))
@@ -31,6 +35,19 @@ struct DetailView: View {
                 }
             }
         }
+        .overlay(alignment: .bottom) {
+            if let toastMessage {
+                Text(toastMessage)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.umbraBackground)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.ember, in: Capsule())
+                    .padding(.bottom, 40)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .sensoryFeedback(.impact, trigger: toastMessage)   // hafif titreşim
         .task { await viewModel.load() }
     }
     
@@ -38,11 +55,23 @@ struct DetailView: View {
     private func content(_ detail: MovieDetail) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                // Header — geniş backdrop görseli
+                // Header — geniş backdrop görseli + sağ üst ❤️ favori
                 KFImage(detail.backdropURL)
                     .placeholder { Color.umbraSurface }
                     .resizable()
                     .aspectRatio(16/9, contentMode: .fit)
+                    .overlay(alignment: .topTrailing) {
+                        Button {
+                            toggleWatchlist(detail)
+                        } label: {
+                            Image(systemName: isSaved(detail) ? "heart.fill" : "heart")
+                                .font(.title3)
+                                .foregroundStyle(isSaved(detail) ? Color.ember : .white)
+                                .padding(10)
+                                .background(.ultraThinMaterial, in: Circle())
+                        }
+                        .padding(12)
+                    }
                 
                 VStack(alignment: .leading, spacing: 12) {
                     Text(detail.title)
@@ -72,7 +101,7 @@ struct DetailView: View {
                                 .background(Color.ember.opacity(0.15), in: Capsule())
                         }
                     }
-
+                    
                     // Açıklama
                     Text(detail.overview)
                         .font(.body)
@@ -134,6 +163,37 @@ struct DetailView: View {
                 }
                 .padding(.horizontal)
             }
+        }
+    }
+    
+    // Bu film zaten listede mi?
+    private func isSaved(_ detail: MovieDetail) -> Bool {
+        watchlist.contains { $0.movieID == detail.id }
+    }
+
+    // Ekle / çıkar
+    private func toggleWatchlist(_ detail: MovieDetail) {
+        if let existing = watchlist.first(where: { $0.movieID == detail.id }) {
+            context.delete(existing)      // varsa sil
+            showToast("İzleme Listesi'nden çıkarıldı")
+        } else {
+            let item = WatchlistItem(     // yoksa ekle
+                movieID: detail.id,
+                title: detail.title,
+                posterPath: detail.posterPath,
+                voteAverage: detail.voteAverage
+            )
+            context.insert(item)
+            showToast("İzleme Listesi'ne eklendi")
+        }
+    }
+
+    // Kısa bilgi baloncuğu göster, 2 sn sonra gizle
+    private func showToast(_ message: String) {
+        withAnimation { toastMessage = message }
+        Task {
+            try? await Task.sleep(for: .seconds(2))
+            withAnimation { toastMessage = nil }
         }
     }
 }

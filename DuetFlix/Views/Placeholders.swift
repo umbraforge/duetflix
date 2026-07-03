@@ -7,10 +7,6 @@
 
 import SwiftUI
 
-struct WatchlistView: View {
-    var body: some View { PlaceholderScreen(title: "İzleme Listesi", subtitle: "Favoriler yakında") }
-}
-
 struct ProfileView: View {
     let onChangeMode: () -> Void
 
