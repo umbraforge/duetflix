@@ -10,6 +10,7 @@ import SwiftUI
 struct MovieRow: View {
     let title: String
     let movies: [Movie]
+    var onReachEnd: () -> Void = {}   // son karta gelince çağrılır (varsayılan: boş)
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -19,6 +20,7 @@ struct MovieRow: View {
                 .padding(.horizontal)
 
             ScrollView(.horizontal, showsIndicators: false) {
+                // HStack = tüm kartlar baştan çizilir → akıcı kaydırma
                 HStack(spacing: 12) {
                     ForEach(movies) { movie in
                         NavigationLink {
@@ -30,6 +32,13 @@ struct MovieRow: View {
                     }
                 }
                 .padding(.horizontal)
+            }
+            // Tetiği .onAppear yerine gerçek kaydırma konumundan al:
+            // sağdaki sona ~400pt kala "yaklaştı" olur.
+            .onScrollGeometryChange(for: Bool.self) { geo in
+                geo.contentOffset.x + geo.containerSize.width >= geo.contentSize.width - 400
+            } action: { wasNearEnd, isNearEnd in
+                if isNearEnd && !wasNearEnd { onReachEnd() }   // sadece "yaklaştı"ya geçişte tetikle
             }
         }
     }
@@ -44,7 +53,7 @@ struct MovieRow: View {
     ]
     return ZStack {
         Color.umbraBackground.ignoresSafeArea()
-        MovieRow(title: "Popular", movies: samples)
+        MovieRow(title: "Popüler", movies: samples)
     }
     .preferredColorScheme(.dark)
 }

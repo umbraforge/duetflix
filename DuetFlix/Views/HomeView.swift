@@ -27,23 +27,35 @@ struct HomeView: View {
                     Group {
                         switch viewModel.state {
                         case .loading:
-                            ProgressView("Yukleniyor")
-                        case .loaded(let movies):
+                            ProgressView("Yükleniyor")
+                        case .loaded:
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 16) {
-                                    FeaturedCarousel(movies: Array(movies.prefix(5)))   // ilk 5 film öne çıkan
+                                    FeaturedCarousel(movies: Array(viewModel.movies.prefix(5)))   // ilk 5 film öne çıkan
 
-                                    MovieRow(title: "Popular", movies: Array(movies.dropFirst(5)))
-                                    
+                                    MovieRow(title: "Popüler",
+                                             movies: Array(viewModel.movies.dropFirst(5)),
+                                             onReachEnd: { Task { await viewModel.loadMore() } })
+
+                                    if viewModel.isLoadingMore {
+                                        ProgressView()
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.bottom)
+                                    }
                                 }
                             }
                         case .error(let message):
-                            Text("Hata: \(message)")
-                                .foregroundStyle(Color.textSecondary)
+                            ErrorView(message: message) {
+                                Task { await viewModel.loadPopular() }
+                            }
                         }
                     }
                     .task {                                  // ← Group'a bağlı, dışarıda
-                        await viewModel.loadPopular()
+                        // Sadece ilk açılışta yükle; geri gelince tekrar yükleyip
+                        // kaydırma konumunu sıfırlama.
+                        if viewModel.movies.isEmpty {
+                            await viewModel.loadPopular()
+                        }
                     }
                 }
             }

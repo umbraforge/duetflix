@@ -22,7 +22,7 @@ struct ModeSelectionView: View {
                         Text("DuetFlix")
                             .font(.largeTitle.bold())
                             .foregroundStyle(Color.textPrimary)
-                        Text("How will you watch?")
+                        Text("Nasıl izleyeceksin?")
                             .font(.headline)
                             .foregroundStyle(Color.textSecondary)
                     }

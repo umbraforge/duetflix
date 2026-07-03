@@ -26,8 +26,9 @@ struct DetailView: View {
             case .loaded(let movieDetail):
                 content(movieDetail)
             case .error(let message):
-                Text("Hata: \(message)")
-                    .foregroundStyle(Color.textSecondary)
+                ErrorView(message: message) {
+                    Task { await viewModel.load() }
+                }
             }
         }
         .task { await viewModel.load() }
@@ -52,7 +53,7 @@ struct DetailView: View {
                     HStack(spacing: 8) {
                         Text(detail.releaseDate.prefix(4))     // "2024-02-27" → "2024"
                         if let runtime = detail.runtime {
-                            Text("• \(runtime) min")
+                            Text("• \(runtime) dk")
                         }
                         Image(systemName: "star.fill").foregroundStyle(Color.ratingStar)
                         Text(String(format: "%.1f", detail.voteAverage))

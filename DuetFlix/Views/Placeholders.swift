@@ -7,12 +7,8 @@
 
 import SwiftUI
 
-struct DiscoverView: View {
-    var body: some View { PlaceholderScreen(title: "Discover", subtitle: "Arama yakında (CP7)") }
-}
-
 struct WatchlistView: View {
-    var body: some View { PlaceholderScreen(title: "Watchlist", subtitle: "Favoriler yakında (CP8)") }
+    var body: some View { PlaceholderScreen(title: "İzleme Listesi", subtitle: "Favoriler yakında") }
 }
 
 struct ProfileView: View {
@@ -22,7 +18,7 @@ struct ProfileView: View {
         ZStack {
             Color.umbraBackground.ignoresSafeArea()
             VStack(spacing: Theme.Spacing.lg) {
-                Text("Profile")
+                Text("Profil")
                     .font(.largeTitle.bold())
                     .foregroundStyle(Color.textPrimary)
                 Button("Mod değiştir", action: onChangeMode)
@@ -75,6 +71,6 @@ struct PlaceholderScreen: View {
 }
 
 #Preview {
-    DiscoverView()
+    SearchView()
         .preferredColorScheme(.dark)
 }

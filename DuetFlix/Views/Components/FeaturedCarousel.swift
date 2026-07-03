@@ -46,7 +46,11 @@ struct FeaturedCarousel: View {
                 }
             }
         }
-        .onAppear { currentID = movies.first?.id }             // ilk nokta aktif başlasın
+        .onAppear {
+            // Sadece ilk kez ayarla; geri gelince currentID'yi sıfırlayıp
+            // carousel'i başa zıplatma (scrollPosition'a bağlı).
+            if currentID == nil { currentID = movies.first?.id }
+        }
     }
 }
 
