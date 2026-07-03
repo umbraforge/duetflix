@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		47A2C0B22FF5878900F30F8E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0B12FF5878900F30F8E /* Kingfisher */; };
+		47A2C0E22FF826C700F30F8E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0E12FF826C700F30F8E /* FirebaseAuth */; };
+		47A2C0E42FF826C700F30F8E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0E32FF826C700F30F8E /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +32,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				47A2C0B22FF5878900F30F8E /* Kingfisher in Frameworks */,
+				47A2C0E22FF826C700F30F8E /* FirebaseAuth in Frameworks */,
+				47A2C0E42FF826C700F30F8E /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +87,8 @@
 			name = DuetFlix;
 			packageProductDependencies = (
 				47A2C0B12FF5878900F30F8E /* Kingfisher */,
+				47A2C0E12FF826C700F30F8E /* FirebaseAuth */,
+				47A2C0E32FF826C700F30F8E /* FirebaseFirestore */,
 			);
 			productName = DuetFlix;
 			productReference = 473BE6F32FF4575E00FC2301 /* DuetFlix.app */;
@@ -114,6 +120,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				47A2C0B02FF5878900F30F8E /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 473BE6F42FF4575E00FC2301 /* Products */;
@@ -369,6 +376,14 @@
 				minimumVersion = 8.10.0;
 			};
 		};
+		47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.15.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -376,6 +391,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 47A2C0B02FF5878900F30F8E /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		47A2C0E12FF826C700F30F8E /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		47A2C0E32FF826C700F30F8E /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

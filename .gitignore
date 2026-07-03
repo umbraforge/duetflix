@@ -22,6 +22,9 @@ DerivedData/
 ## Secrets — API anahtarları git'e ASLA girmez
 Secrets.xcconfig
 
+## Firebase — kişisel proje config'i (public repo'da yayınlanmaz)
+GoogleService-Info.plist
+
 ## Kişisel notlar — repoda yayınlanmaz (yerelde kalır)
 docs/OGRENDIKLERIM.md
 docs/ILERLEME-GUNLUGU.md

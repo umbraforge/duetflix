@@ -7,9 +7,15 @@
 
 import SwiftUI
 import SwiftData
+import FirebaseCore
+
 
 @main // uygulama burdan başlar
 struct DuetFlixApp: App {
+    init() {
+        FirebaseApp.configure() // uygulama açılınca firebase'i başlat (GoogleService infoyu okur bağlanır)
+    }
+    
     var body: some Scene {
         WindowGroup {
             RootView()
