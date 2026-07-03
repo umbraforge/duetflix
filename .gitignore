@@ -21,3 +21,7 @@ DerivedData/
 
 ## Secrets — API anahtarları git'e ASLA girmez
 Secrets.xcconfig
+
+## Kişisel notlar — repoda yayınlanmaz (yerelde kalır)
+docs/OGRENDIKLERIM.md
+docs/ILERLEME-GUNLUGU.md
