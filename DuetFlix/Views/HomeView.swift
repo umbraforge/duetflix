@@ -10,19 +10,37 @@ import Kingfisher
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
-    
+    var onChangeMode: () -> Void = {}   // mod değiştir
+
     var body: some View {
         NavigationStack {
             ZStack {
-                Color.umbraBackground.ignoresSafeArea()   // umbra zemin
-                
+                Color.umbraBackground.ignoresSafeArea() // umbra zemin
+
                 VStack(alignment: .leading, spacing: 0) {
-                    // Kendi başlığımız
-                    Text("DuetFlix")
-                        .font(.largeTitle.bold())
-                        .foregroundStyle(Color.textPrimary)
-                        .padding(.horizontal)
-                        .padding(.top, 8)
+                    // Başlık + mod değiştirme butonu
+                    HStack {
+                        Text("DuetFlix")
+                            .font(.largeTitle.bold())
+                            .foregroundStyle(Color.textPrimary)
+
+                        Spacer()
+
+                        Button(action: onChangeMode) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "rectangle.2.swap")
+                                Text("Mod")
+                            }
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(Color.ember)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .background(Color.ember.opacity(0.12), in: Capsule())
+                            .overlay(Capsule().stroke(Color.ember.opacity(0.3), lineWidth: 1))
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.top, 8)
                     
                     Group {
                         switch viewModel.state {
@@ -50,9 +68,9 @@ struct HomeView: View {
                             }
                         }
                     }
-                    .task {                                  // ← Group'a bağlı, dışarıda
-                        // Sadece ilk açılışta yükle; geri gelince tekrar yükleyip
-                        // kaydırma konumunu sıfırlama.
+                    .task {
+                        // Sadece ilk açılışta yükle geri gelince tekrar yükleyip
+                        // kaydırma konumunu sıfırlama
                         if viewModel.movies.isEmpty {
                             await viewModel.loadPopular()
                         }

@@ -13,6 +13,6 @@ struct Room: Codable, Identifiable {
     @DocumentID var id: String? // oda kodu (döküman idsi), oda henüz kaydedilmemiş olabilir o yüzden optional
     var hostID: String
     var status: String
-    var members: [String]
+    var members: [String: String]   // uid (benzersiz anahtar) → isim (dostça etiket)
 }
 

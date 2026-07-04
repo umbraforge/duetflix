@@ -23,22 +23,30 @@ final class RoomService {
     private let db = Firestore.firestore()
     
     // Oda kurma, kod üretme, firestore'a yazma, kodu döndür
-    func createRoom(hostID: String) async throws -> String {
+    func createRoom(hostID: String, hostName: String) async throws -> String {
         let code = Self.generateCode()
         try await db.collection("rooms").document(code).setData([
             "hostID": hostID,
             "status": "lobby",
             "createdAt": FieldValue.serverTimestamp(),
-            "members": [hostID]
+            "members": [hostID: hostName]   // uid → isim
         ])
         return code
     }
-    
-    // Odaya katılma, members dizisine uid ekleme
-    func joinRoom(code: String, uid: String) async throws {
+
+    // Odaya katılma members mapine uid = isim ekleme
+    // "members.\(uid)" = map içindeki tek bir anahtarı ayarlar 
+    func joinRoom(code: String, uid: String, name: String) async throws {
         try await db.collection("rooms").document(code).updateData([
-            "members": FieldValue.arrayUnion([uid])
+            "members.\(uid)": name
         ])
+    }
+
+    // Odayı bir kez çek (yoksa nil). Hem "oda var mı" hem "isim dolu mu" kontrolü için.
+    func fetchRoom(code: String) async throws -> Room? {
+        let snapshot = try await db.collection("rooms").document(code).getDocument()
+        guard snapshot.exists else { return nil }
+        return try snapshot.data(as: Room.self)
     }
     
     // 6 haneli kod üretme

@@ -8,23 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
-    let onChangeMode: () -> Void
-
     var body: some View {
-        ZStack {
-            Color.umbraBackground.ignoresSafeArea()
-            VStack(spacing: Theme.Spacing.lg) {
-                Text("Profil")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(Color.textPrimary)
-                Button("Mod değiştir", action: onChangeMode)
-                    .font(.headline)
-                    .foregroundStyle(Color.umbraBackground)
-                    .padding(.horizontal, Theme.Spacing.lg)
-                    .padding(.vertical, Theme.Spacing.md)
-                    .background(Color.ember, in: Capsule())
-            }
-        }
+        PlaceholderScreen(title: "Profil", subtitle: "Yakında")
     }
 }
 

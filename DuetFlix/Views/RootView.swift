@@ -13,8 +13,10 @@ enum AppMode {
 }
 
 struct RootView: View {
-    @State private var mode: AppMode? = nil 
+    @State private var mode: AppMode? = nil
     @State private var auth = AuthService() // giriş için kullanılan service
+    @State private var pendingJoinCode: String?   // deep link'ten gelen oda kodu
+
     var body: some View {
         Group {
             switch mode {
@@ -27,8 +29,8 @@ struct RootView: View {
                 // Solo → tab bar. "Mod değiştir" deyince mode'u sıfırla.
                 MainTabView(onChangeMode: { mode = nil })
             case .duo:
-                if let uid = auth.uid { // oda kurarken auth.id lazım auth biraz gecikebilir uid gelene kadar progressView.keyboardType(.numberPad)
-                    DuoView(uid: uid, onChangeMode: {mode = nil})
+                if let uid = auth.uid { // oda kurarken auth.id lazım auth biraz gecikebilir uid gelene kadar progressView
+                    DuoView(uid: uid, initialCode: pendingJoinCode, onChangeMode: { mode = nil })
                 } else {
                     ProgressView() // auth tamamlanmadığı zaman
                 }
@@ -37,5 +39,17 @@ struct RootView: View {
         .task {
             await auth.signInIfNeeded() // service üzerinden giriş veya hazır user id çek (anonim)
         }
+        // duetflix://join?code=xxxxxx linki gelince Duo'ya geç + kodu doldur
+        .onOpenURL { url in
+            handleDeepLink(url)
+        }
+    }
+
+    private func handleDeepLink(_ url: URL) {
+        guard url.scheme == "duetflix", url.host == "join" else { return }
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        guard let code = components?.queryItems?.first(where: { $0.name == "code" })?.value else { return }
+        pendingJoinCode = code   // DuoView'da oda kodu kutusuna dolacak
+        mode = .duo              // Duo ekranına geç
     }
 }

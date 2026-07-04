@@ -12,7 +12,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView {
-            HomeView()
+            HomeView(onChangeMode: onChangeMode)
                 .tabItem { Label("Ana Sayfa", systemImage: "house.fill") }
 
             SearchView()
@@ -21,7 +21,7 @@ struct MainTabView: View {
             WatchlistView()
                 .tabItem { Label("İzleme Listesi", systemImage: "bookmark.fill") }
 
-            ProfileView(onChangeMode: onChangeMode)
+            ProfileView()
                 .tabItem { Label("Profil", systemImage: "person.fill") }
         }
         .tint(.ember)
