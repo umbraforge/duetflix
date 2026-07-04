@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import FirebaseAuth
 
 enum AppMode {
     case solo
@@ -15,7 +14,7 @@ enum AppMode {
 
 struct RootView: View {
     @State private var mode: AppMode? = nil 
-
+    @State private var auth = AuthService() // giriş için kullanılan service
     var body: some View {
         Group {
             switch mode {
@@ -28,16 +27,15 @@ struct RootView: View {
                 // Solo → tab bar. "Mod değiştir" deyince mode'u sıfırla.
                 MainTabView(onChangeMode: { mode = nil })
             case .duo:
-                DuoPlaceholder(onChangeMode: { mode = nil })
+                if let uid = auth.uid { // oda kurarken auth.id lazım auth biraz gecikebilir uid gelene kadar progressView.keyboardType(.numberPad)
+                    DuoView(uid: uid, onChangeMode: {mode = nil})
+                } else {
+                    ProgressView() // auth tamamlanmadığı zaman
+                }
             }
         }
         .task {
-            do {
-                let result = try await Auth.auth().signInAnonymously() // Auth.auth() firebase'in giriş nesnesi, signAnon ile anon şekilde giriyoruz ve result olarak firebase benzersiz id veriyor, o cihaz için kalıcı
-                print("Anonim giriş başarılı, uid:", result.user.uid)
-            } catch {
-                print("Giriş hatası:", error)
-            }
+            await auth.signInIfNeeded() // service üzerinden giriş veya hazır user id çek (anonim)
         }
     }
 }
