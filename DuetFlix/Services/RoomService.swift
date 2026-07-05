@@ -67,6 +67,38 @@ final class RoomService {
         ])
     }
     
+    // Bir swipe kaydet ilerlemeyi güncelle, beğendiyse film idsini likesa ekle
+    func recordSwipe(code: String, uid: String, index: Int, likedMovieID: Int?) async throws {
+        var data: [String: Any] = ["progress.\(uid)": index]
+        if let likedMovieID {
+            data["likes.\(uid)"] = FieldValue.arrayUnion([likedMovieID])
+        }
+        try await db.collection("rooms").document(code).updateData(data)
+    }
+
+    // Deste bitmeye yakın yeni sayfayı desteye ekle (mevcut olanları ekleme)
+    func appendDeck(code: String, movies: [Movie], page: Int) async throws {
+        let ref = db.collection("rooms").document(code)
+        let snapshot = try await ref.getDocument()
+        let existing = try? snapshot.data(as: Room.self)
+        let existingIDs = Set((existing?.deck ?? []).map(\.id))
+        let deckData = movies
+            .filter { !existingIDs.contains($0.id) }
+            .map { movie -> [String: Any] in
+                [
+                    "id": movie.id,
+                    "title": movie.title,
+                    "posterPath": movie.posterPath as Any,
+                    "voteAverage": movie.voteAverage
+                ]
+            }
+        guard !deckData.isEmpty else { return }
+        try await ref.updateData([
+            "deck": FieldValue.arrayUnion(deckData),
+            "deckPage": page
+        ])
+    }
+
     // 6 haneli kod üretme
     static func generateCode() -> String {
         let randomCode = Int.random(in: 0...999999) // 0 ile 999999 arası random bir code

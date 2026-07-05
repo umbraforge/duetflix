@@ -13,24 +13,6 @@ struct ProfileView: View {
     }
 }
 
-struct SwipeView: View {
-    let code: String
-    let uid: String
-
-    var body: some View {
-        ZStack {
-            Color.umbraBackground.ignoresSafeArea()
-            VStack(spacing: Theme.Spacing.md) {
-                Text("Oyun Başladı!")
-                    .font(.largeTitle.bold())
-                    .foregroundStyle(Color.ember)
-                Text("Kaydırma ekranı CP13'te gelecek")
-                    .foregroundStyle(Color.textSecondary)
-            }
-        }
-    }
-}
-
 struct DuoPlaceholder: View {
     let onChangeMode: () -> Void
 
