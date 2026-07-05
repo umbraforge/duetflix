@@ -79,7 +79,7 @@ final class LobbyViewModel {
             let isLast = (room?.members.count ?? 0) <= 1 // lobbydeki son kişi miyim?
             
             if isHost || isLast {
-                try await ref.delete() // odayı komple sil
+                try await roomService.deleteRoom(code: code) // oda + deste alt-dokümanı
             } else {
                 try await ref.updateData([ // sadece beni çıkar (map'ten uid anahtarını sil)
                     "members.\(uid)": FieldValue.delete()

@@ -115,10 +115,13 @@ struct SwipeView: View {
     // Canlı eşleşmeleri SwiftDataya yansıtma yeni eşleşme → kaydet, çıkarılan → sil.
     // Oda kapanınca matchedMovies boşalır ama kayıtlar silinmez.
     private func syncSavedMatches() {
-        let saved = Set(savedMatches.map(\.movieID))
+        // Tekilleştirme BU OTURUMA (oda koduna) özel: aynı film başka bir oyunda
+        // tekrar eşleşirse geçmişe AYRI kayıt olarak düşsün (oturumlar oda koduna göre gruplu).
+        let savedInThisRoom = Set(savedMatches.filter { $0.roomCode == code }.map(\.movieID))
+        // İzleme listesi tek kişisel liste → orada global tekilleştirme (aynı film iki kez olmasın).
         let inWatchlist = Set(watchlist.map(\.movieID))
-        // Ekle: eşleşmiş, çıkarılmamış, henüz kaydedilmemiş
-        for movie in viewModel.matchedMovies where !saved.contains(movie.id) {
+        // Ekle: eşleşmiş, çıkarılmamış, bu oturumda henüz kaydedilmemiş
+        for movie in viewModel.matchedMovies where !savedInThisRoom.contains(movie.id) {
             context.insert(SavedMatch(movieID: movie.id, title: movie.title,
                                       posterPath: movie.posterPath, voteAverage: movie.voteAverage,
                                       roomCode: code, partners: viewModel.memberNames))
@@ -129,8 +132,8 @@ struct SwipeView: View {
                                              posterPath: movie.posterPath, voteAverage: movie.voteAverage))
             }
         }
-        // Sil kayıtlı olup artık listeden çıkarılmış (reddedilmiş) olanlar
-        for item in savedMatches where viewModel.rejectedIDs.contains(item.movieID) {
+        // Sil: bu oturumda kayıtlı olup artık listeden çıkarılmış (reddedilmiş) olanlar
+        for item in savedMatches where item.roomCode == code && viewModel.rejectedIDs.contains(item.movieID) {
             context.delete(item)
         }
     }

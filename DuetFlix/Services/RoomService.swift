@@ -71,6 +71,15 @@ final class RoomService {
         ])
     }
 
+    // Odayı komple sil: ÖNCE deste alt-dokümanını, SONRA ana dokümanı.
+    // (Firestore doküman silince alt-koleksiyonu silmez → yetim kalmasın.
+    //  Sıra önemli: deste silme yetkisi ana doküman var olup üyelik kontrolü ister.)
+    func deleteRoom(code: String) async throws {
+        let ref = db.collection("rooms").document(code)
+        try await ref.collection("state").document("deck").delete()
+        try await ref.delete()
+    }
+
     // Film → Firestore mapi
     private static func deckEntry(_ movie: Movie) -> [String: Any] {
         [
