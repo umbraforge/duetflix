@@ -49,6 +49,24 @@ final class RoomService {
         return try snapshot.data(as: Room.self)
     }
     
+    // Host oyunu başlatır desteyi yaz + statusü swiping yap + tüm oyuncuları "playing"e ekle
+    func startGame(code: String, movies: [Movie], page: Int, players: [String]) async throws {
+        let deckData = movies.map { movie in
+            [
+                "id": movie.id,
+                "title": movie.title,
+                "posterPath": movie.posterPath as Any,
+                "voteAverage": movie.voteAverage
+            ]
+        }
+        try await db.collection("rooms").document(code).updateData([ // status deck deckPage ve playing alanlarını güncelliyoruz
+            "status": "swiping",
+            "deck": deckData,
+            "deckPage": page,
+            "playing": players
+        ])
+    }
+    
     // 6 haneli kod üretme
     static func generateCode() -> String {
         let randomCode = Int.random(in: 0...999999) // 0 ile 999999 arası random bir code

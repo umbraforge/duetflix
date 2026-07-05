@@ -18,8 +18,78 @@ struct LobbyView: View {
 
     // Bu cihaz host mu?
     private var isHost: Bool { viewModel.room?.hostID == uid }
+    // Bu cihaz ŞU AN oyunda (swipe ekranında) mı? (lobide olanlar false)
+    private var isPlaying: Bool { viewModel.room?.playing?.contains(uid) ?? false }
 
     var body: some View {
+        // Hangi ekran? BEN oyundaysam swipe, değilsem lobi.
+        // (Her oyuncu bağımsız biri kaydırırken diğeri lobide olabilir)
+        Group {
+            if isPlaying {
+                SwipeView(code: code, uid: uid)
+            } else {
+                lobbyContent
+            }
+        }
+        // Alt bildirim baloncuğu
+        .overlay(alignment: .bottom) {
+            if let toastMessage {
+                Text(toastMessage)
+                    .font(.subheadline.bold())
+                    .foregroundStyle(Color.umbraBackground)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.ember, in: Capsule())
+                    .padding(.bottom, 60)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .sensoryFeedback(.impact, trigger: toastMessage)
+        .onAppear { viewModel.listen(code: code, uid: uid) }
+        .onDisappear { viewModel.stopListening() }
+        // Oda silinince (host kapatınca) karşı taraf bilgilendirilip otomatik çıkar
+        .onChange(of: viewModel.roomClosed) { _, closed in
+            if closed && !isLeaving {
+                showToast("\(viewModel.closedBy ?? "Host") odayı kapattı")
+                Task {
+                    try? await Task.sleep(for: .seconds(1.3))
+                    dismiss()
+                }
+            }
+        }
+        // Katılan/çıkan olunca kısa bildirim
+        .onChange(of: viewModel.eventMessage) { _, message in
+            if let message { showToastAutoHide(message) }
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    Task {
+                        if isPlaying {
+                            // Oyundaysam → sadece lobiye dön (oda silinmez)
+                            await viewModel.exitToLobby(code: code, uid: uid)
+                        } else {
+                            // Lobideysem → odadan çık
+                            let wasHost = isHost
+                            isLeaving = true
+                            await viewModel.leave(code: code, uid: uid)
+                            if wasHost {
+                                showToast("Oda silindi")
+                                try? await Task.sleep(for: .seconds(1.3))
+                            }
+                            dismiss()
+                        }
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+            }
+        }
+    }
+
+
+    private var lobbyContent: some View {
         ZStack {
             Color.umbraBackground.ignoresSafeArea()
 
@@ -30,11 +100,11 @@ struct LobbyView: View {
 
                 HStack(spacing: Theme.Spacing.md) {
                     Text(code)
-                        .font(.system(size: 44, weight: .bold, design: .monospaced)) // monospaced kodlar için kullanılır genelde
+                        .font(.system(size: 44, weight: .bold, design: .monospaced))
                         .foregroundStyle(Color.ember)
 
                     Button {
-                        UIPasteboard.general.string = code   // panoya kopyala
+                        UIPasteboard.general.string = code
                         showToastAutoHide("Oda kodu kopyalandı")
                     } label: {
                         Image(systemName: "doc.on.doc")
@@ -42,7 +112,6 @@ struct LobbyView: View {
                             .foregroundStyle(Color.textSecondary)
                     }
 
-                    // Sistem paylaş sayfasıyla oda linkini gönder (tıklanınca uygulama açılıp katılır)
                     if let inviteURL = URL(string: "duetflix://join?code=\(code)") {
                         ShareLink(
                             item: inviteURL,
@@ -63,7 +132,6 @@ struct LobbyView: View {
                     .foregroundStyle(Color.textPrimary)
 
                 if let room = viewModel.room {
-                    // map'i uid'ye göre sıralı göster
                     ForEach(room.members.sorted(by: { $0.key < $1.key }), id: \.key) { memberID, name in
                         HStack(spacing: Theme.Spacing.sm) {
                             Image(systemName: "person.fill")
@@ -75,15 +143,66 @@ struct LobbyView: View {
                                     .font(.caption)
                                     .foregroundStyle(Color.textSecondary)
                             }
+                            // swipe ekranında olanlara "Eşleşmede" rozeti
+                            if room.playing?.contains(memberID) == true {
+                                Text("Eşleşmede")
+                                    .font(.caption2.bold())
+                                    .foregroundStyle(Color.ember)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Color.ember.opacity(0.15), in: Capsule())
+                            }
                         }
                     }
-                } else { // oda yokken veri gelene kadar yükleniyor ekranı
+                } else {
                     ProgressView()
                 }
 
                 Spacer()
 
-                // kullanıcı ve host için küçük bilgilendirme
+                if viewModel.room?.status == "swiping" {
+                    // Oyun devam ediyor ama ben lobideyim → Oyuna Dön
+                    Button {
+                        Task { await viewModel.rejoin(code: code, uid: uid) }
+                    } label: {
+                        HStack(spacing: Theme.Spacing.sm) {
+                            Image(systemName: "arrow.uturn.forward")
+                            Text("Oyuna Dön")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(Color.umbraBackground)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(Color.ember, in: Capsule())
+                        .shadow(color: Color.ember.opacity(0.4), radius: 12, y: 4)
+                    }
+                    .padding(.bottom, Theme.Spacing.sm)
+                } else if isHost {
+                    // Oyunu başlat — sadece host, en az 2 kişi olunca aktif
+                    let canStart = (viewModel.room?.members.count ?? 0) >= 2
+                    Button {
+                        Task { await viewModel.startGame(code: code) }
+                    } label: {
+                        HStack(spacing: Theme.Spacing.sm) {
+                            if viewModel.isStarting {
+                                ProgressView().tint(Color.umbraBackground)
+                            } else {
+                                Image(systemName: canStart ? "play.fill" : "hourglass")
+                            }
+                            Text(canStart ? "Başlat" : "Oyuncu bekleniyor…")
+                        }
+                        .font(.headline)
+                        .foregroundStyle(canStart ? Color.umbraBackground : Color.textSecondary)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(canStart ? Color.ember : Color.umbraSurface, in: Capsule())
+                        .shadow(color: canStart ? Color.ember.opacity(0.4) : .clear, radius: 12, y: 4)
+                    }
+                    .disabled(!canStart || viewModel.isStarting)
+                    .animation(.easeInOut(duration: 0.2), value: canStart)
+                    .padding(.bottom, Theme.Spacing.sm)
+                }
+
                 Label(isHost ? "Odayı kapatmak için sol üstten çıkabilirsin"
                              : "Odadan ayrılmak için sol üstten çıkabilirsin",
                       systemImage: "info.circle")
@@ -93,63 +212,12 @@ struct LobbyView: View {
             }
             .padding()
         }
-        // oda silinince toast
-        .overlay(alignment: .bottom) {
-            if let toastMessage {
-                Text(toastMessage)
-                    .font(.subheadline.bold())
-                    .foregroundStyle(Color.umbraBackground)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(Color.ember, in: Capsule())
-                    .padding(.bottom, 60)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
-        }
-        .sensoryFeedback(.impact, trigger: toastMessage)
-        .onAppear { viewModel.listen(code: code, uid: uid) } // ekran açılınca dinlemeye başla
-        .onDisappear { viewModel.stopListening() } // ekrandan çıkınca dinlemeyi bırak
-        // Host odayı silince misafir bilgilendirilip otomatik çıkar
-        .onChange(of: viewModel.roomClosed) { _, closed in
-            // Sadece karşı taraf (kapatmayan) bu bildirimi görsün
-            if closed && !isLeaving {
-                showToast("\(viewModel.closedBy ?? "Host") odayı kapattı")
-                Task {
-                    try? await Task.sleep(for: .seconds(1.3))
-                    dismiss()
-                }
-            }
-        }
-        // Katılan/çıkan olunca kısa bildirim
-        .onChange(of: viewModel.eventMessage) { _, message in
-            if let message { showToastAutoHide(message) }
-        }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    Task {
-                        let wasHost = isHost                            // ayrılmadan önce host muyum?
-                        isLeaving = true                                // ben ayrılıyorum → kendi roomClosed toastım çıkmasın
-                        await viewModel.leave(code: code, uid: uid)     // önce odadan çık
-                        if wasHost {
-                            showToast("Oda silindi")                    // host'a bildir
-                            try? await Task.sleep(for: .seconds(1.3))
-                        }
-                        dismiss()                                       // sonra ekranı kapat
-                    }
-                } label: {
-                    Image(systemName: "chevron.left")
-                }
-            }
-        }
     }
 
     private func showToast(_ message: String) {
         withAnimation { toastMessage = message }
     }
 
-    // Katıl/çık bildirimi göster, 2 sn sonra kendiliğinden gizle
     private func showToastAutoHide(_ message: String) {
         withAnimation { toastMessage = message }
         Task {

@@ -22,6 +22,10 @@ final class LobbyViewModel {
     private var previousMembers: [String: String] = [:]    // önceki üyeler (kim katıldı/çıktı diffi için)
     private var myUID = ""                                 // kendi olayımı bildirim yapma diye
 
+    private let tmdb: TMDBService = TMDBServiceLive()   // film çekmek için
+    private let roomService = RoomService()             // desteyi yazmak için
+    private(set) var isStarting = false                 // çift tık koruması
+    
     // Odayı gerçek zamanlı dinleme
     func listen(code: String, uid: String) {
         myUID = uid
@@ -83,6 +87,42 @@ final class LobbyViewModel {
             }
         } catch {
             print("Ayrılma hatası:", error)
+        }
+    }
+
+    // Oyundan lobiye dön (odadan çıkma!): "playing"ten uid'i çıkar
+    func exitToLobby(code: String, uid: String) async {
+        do {
+            try await db.collection("rooms").document(code).updateData([
+                "playing": FieldValue.arrayRemove([uid])
+            ])
+        } catch {
+            print("Lobiye dönüş hatası:", error)
+        }
+    }
+
+    // Lobiden oyuna geri dön playinge uidi ekle
+    func rejoin(code: String, uid: String) async {
+        do {
+            try await db.collection("rooms").document(code).updateData([
+                "playing": FieldValue.arrayUnion([uid])
+            ])
+        } catch {
+            print("Oyuna dönüş hatası:", error)
+        }
+    }
+
+    // Host oyunu başlatır popüler filmleri çeker ve odaya deste olarak yazar, fetchPopular ile filmler çekiliyor ardından startGame ile firestore'a yazılıyor
+    func startGame(code: String) async {
+        guard !isStarting else { return }
+        isStarting = true
+        defer { isStarting = false }
+        do {
+            let movies = try await tmdb.fetchPopular(page: 1)     // ilk 20 popüler
+            let players = Array((room?.members ?? [:]).keys)       // başlarken herkes oyunda
+            try await roomService.startGame(code: code, movies: movies, page: 1, players: players)
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
     
