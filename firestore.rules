@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// DuetFlix — Firestore güvenlik kuralları (CP16)
+// Amaç: yalnızca giriş yapmış (anonim Auth) kullanıcılar; oda işlemleri
+// yalnızca odanın üyeleri. Katılım (join) için özel istisna var: kişi henüz
+// üye değilken kendini members'a ekleyebilmeli.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --- Yardımcılar ---
+    function signedIn() {
+      return request.auth != null;
+    }
+    // Yazmadan ÖNCEKI halde (resource.data) bu kullanıcı üye mi?
+    function isMember() {
+      return signedIn() && request.auth.uid in resource.data.members;
+    }
+    // Bu güncelleme "kendini odaya ekleme" mi? (join anı: önce üye değil,
+    // sonra members'ta var)
+    function isJoiningSelf() {
+      return signedIn()
+        && !(request.auth.uid in resource.data.members)
+        && request.auth.uid in request.resource.data.members;
+    }
+
+    match /rooms/{code} {
+      // Okuma: giriş yapmış herkes (katılmadan önce odayı bulmak için gerekli)
+      allow read: if signedIn();
+
+      // Oda kurma: giriş yapmış + kendini host yapıyor + kendini üye ekliyor + lobide başlıyor
+      allow create: if signedIn()
+        && request.resource.data.hostID == request.auth.uid
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.status == 'lobby';
+
+      // Güncelleme: ya zaten üyesin (swipe/like/progress/başlat/lobiye dön…)
+      // ya da odaya yeni katılıyorsun (kendini ekliyorsun)
+      allow update: if isMember() || isJoiningSelf();
+
+      // Silme: odayı yalnızca üyeler silebilir (host kapatır / son kişi çıkar —
+      // her ikisi de o an üyedir)
+      allow delete: if isMember();
+
+      // Deste alt-dokümanı (rooms/{code}/state/deck): yalnızca odanın üyeleri
+      match /state/{docId} {
+        allow read, write: if signedIn()
+          && request.auth.uid in
+             get(/databases/$(database)/documents/rooms/$(code)).data.members;
+      }
+    }
+
+    // Diğer her şey kapalı (varsayılan deny)
+  }
+}
