@@ -18,13 +18,17 @@ final class SwipeViewModel {
     private(set) var likeCount = 0           // bu oyuncunun beğeni sayısı
     private(set) var refillError = false     // yeni filmler yüklenemedi mi
     private(set) var matchedIDs: Set<Int> = []  // herkesin ortak beğendiği film id'leri
+    private(set) var rejectedIDs: Set<Int> = [] // listeden çıkarılan film id'leri
+    private(set) var memberNames: [String] = [] // odadaki isimler (geçmiş kaydı için)
     var newMatch: DeckMovie?                 // yeni çıkan eşleşme → kutlama tetikler
 
     private let db = Firestore.firestore()
     private let tmdb: TMDBService = TMDBServiceLive()
     private let roomService = RoomService()
-    private var listener: ListenerRegistration?
+    private var listener: ListenerRegistration?       // ana oda dokümanı (küçük, sık değişir)
+    private var deckListener: ListenerRegistration?   // deste alt-dokümanı (büyük, nadir değişir)
     private var uid = ""
+    private var roomCode = ""
     private var deckPage = 1
     private var didInitIndex = false         // konumu Firestore'dan sadece bir kez oku
     private var isRefilling = false
@@ -35,22 +39,38 @@ final class SwipeViewModel {
     var isFinished: Bool { currentIndex >= deck.count }
     // Şu anki kart
     var currentMovie: DeckMovie? { currentIndex < deck.count ? deck[currentIndex] : nil }
+    // Eşleşen filmler (deste sırasında, çıkarılanlar hariç) — "Bu gece için" ekranı için
+    var matchedMovies: [DeckMovie] {
+        deck.filter { matchedIDs.contains($0.id) && !rejectedIDs.contains($0.id) }
+    }
 
     func listen(code: String, uid: String) {
         self.uid = uid
+        self.roomCode = code
+        let roomRef = db.collection("rooms").document(code)
+
+        // 1) Ana doküman: ilerleme/beğeni/eşleşme — her swipe'ta gelir (deste YOK, hafif)
         listener?.remove()
-        listener = db.collection("rooms").document(code)
+        listener = roomRef.addSnapshotListener { [weak self] snapshot, _ in
+            guard let self, let room = try? snapshot?.data(as: Room.self) else { return }
+            self.deckPage = room.deckPage ?? 1
+            self.likeCount = room.likes?[uid]?.count ?? 0
+            self.memberNames = room.members.values.sorted()   // geçmiş kaydı için
+            // Konumu yalnızca ilk snapshot'ta oku (devam edince kaldığı yerden başlasın)
+            if !self.didInitIndex {
+                self.currentIndex = room.progress?[uid] ?? 0
+                self.didInitIndex = true
+            }
+            self.rejectedIDs = Set(room.rejected ?? [])  // listeden çıkarılanlar
+            self.updateMatches(likes: room.likes)         // ortak beğenileri hesapla
+        }
+
+        // 2) Deste alt-dokümanı: büyük ama sadece başlangıç + refill'de değişir
+        deckListener?.remove()
+        deckListener = roomRef.collection("state").document("deck")
             .addSnapshotListener { [weak self] snapshot, _ in
-                guard let self, let room = try? snapshot?.data(as: Room.self) else { return }
-                self.deck = room.deck ?? []
-                self.deckPage = room.deckPage ?? 1
-                self.likeCount = room.likes?[uid]?.count ?? 0
-                // Konumu yalnızca ilk snapshot'ta oku (devam edince kaldığı yerden başlasın)
-                if !self.didInitIndex {
-                    self.currentIndex = room.progress?[uid] ?? 0
-                    self.didInitIndex = true
-                }
-                self.updateMatches(likes: room.likes)  // ortak beğenileri hesapla
+                guard let self, let doc = try? snapshot?.data(as: DeckDoc.self) else { return }
+                self.deck = doc.movies ?? []
                 self.prefetchUpcoming()   // sıradaki posterleri önden indir
             }
     }
@@ -61,17 +81,20 @@ final class SwipeViewModel {
     private func updateMatches(likes: [String: [Int]]?) {
         // Beğeni yapmış oyuncuların listeleri (Duo'da bu iki kişidir)
         let voterLikes = (likes ?? [:]).values.map { $0 }
-        guard voterLikes.count >= 2 else { matchedIDs = []; return }
 
-        // İlk listeyi Sete al, kalanlarla kesiştir
-        var intersection = Set(voterLikes[0])
-        for list in voterLikes.dropFirst() {
-            intersection.formIntersection(list)
-            if intersection.isEmpty { break }
+        // Kesişim = ortak beğeniler. < 2 oyuncu varsa boş küme.
+        var intersection = Set<Int>()
+        if let first = voterLikes.first, voterLikes.count >= 2 {
+            intersection = Set(first)
+            for list in voterLikes.dropFirst() {
+                intersection.formIntersection(list)
+                if intersection.isEmpty { break }
+            }
         }
         matchedIDs = intersection
 
-        // İlk snapshot eski eşleşmeler için kutlama patlamasın (rejoin senaryosu)
+        // İlk snapshotta mevcut durumu "görülmüş" say (rejoin'de eski eşleşme patlamasın)
+        // Oyun başında likes boş → boş tohum → sonraki İLK gerçek
         if !didSeedMatches {
             seenMatchIDs = intersection
             didSeedMatches = true
@@ -88,6 +111,17 @@ final class SwipeViewModel {
     // Kutlama kapatıldı
     func clearMatch() { newMatch = nil }
 
+    // Bir eşleşmeyi "bu gece için" listesinden çıkar (iki oyuncuda da gizlenir).
+    // Firestorea yazıyoruz; snapshot dönünce rejectedIDs güncellenip liste yenilenir.
+    func removeMatch(movieID: Int, code: String) {
+        Task { try? await roomService.rejectMatch(code: code, movieID: movieID) }
+    }
+
+    // Oyunu bitir → lobiye dön (playing'ten çık). Oda ve eşleşmeler korunur.
+    func endGame(code: String) {
+        Task { try? await roomService.leaveGame(code: code, uid: uid) }
+    }
+
     // Sıradaki kartların posterlerini arka planda önceden indir
     private func prefetchUpcoming() {
         let start = currentIndex
@@ -100,6 +134,8 @@ final class SwipeViewModel {
     func stopListening() {
         listener?.remove()
         listener = nil
+        deckListener?.remove()
+        deckListener = nil
     }
 
     // Bir kartı kaydır beğen (like=true) / geç (like=false)

@@ -14,10 +14,10 @@ struct Room: Codable, Identifiable {
     var hostID: String
     var status: String
     var members: [String: String]   // uid (benzersiz anahtar) → isim (dostça etiket)
-    var deck: [DeckMovie]?    // oyun başlayınca dolar
     var deckPage: Int?        // deste hangi sayfaya kadar dolduruldu (refill için)
     var playing: [String]?    // o an swipe ekranında olan oyuncuların uidleri (lobide olanlar burada değil)
     var progress: [String: Int]?   // uid → kaçıncı karttasın (devam edince kaldığı yerden)
     var likes: [String: [Int]]?    // uid → beğenilen film id'leri (eşleşme için)
+    var rejected: [Int]?           // eşleşme listesinden çıkarılan film idleri
 }
 

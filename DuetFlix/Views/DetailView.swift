@@ -11,13 +11,15 @@ import SwiftData
 
 struct DetailView: View {
     let movieID: Int
+    let showWatchlistButton: Bool   // kalp yalnızca Solo'da; Duo/eşleşmede gizli
     @State private var viewModel: DetailViewModel
     @Environment(\.modelContext) private var context
     @Query private var watchlist: [WatchlistItem]
     @State private var toastMessage: String?
-    
-    init(movieID: Int) {
+
+    init(movieID: Int, showWatchlistButton: Bool = true) {
         self.movieID = movieID
+        self.showWatchlistButton = showWatchlistButton
         _viewModel = State(initialValue: DetailViewModel(movieID: movieID))
     }
     var body: some View {
@@ -61,16 +63,20 @@ struct DetailView: View {
                     .resizable()
                     .aspectRatio(16/9, contentMode: .fit)
                     .overlay(alignment: .topTrailing) {
-                        Button {
-                            toggleWatchlist(detail)
-                        } label: {
-                            Image(systemName: isSaved(detail) ? "heart.fill" : "heart")
-                                .font(.title3)
-                                .foregroundStyle(isSaved(detail) ? Color.ember : .white)
-                                .padding(10)
-                                .background(.ultraThinMaterial, in: Circle())
+                        // Kalp (izleme listesi) yalnızca Solo'da. Duo'da eşleşenler
+                        // otomatik eklendiği için burada gösterilmez.
+                        if showWatchlistButton {
+                            Button {
+                                toggleWatchlist(detail)
+                            } label: {
+                                Image(systemName: isSaved(detail) ? "heart.fill" : "heart")
+                                    .font(.title3)
+                                    .foregroundStyle(isSaved(detail) ? Color.ember : .white)
+                                    .padding(10)
+                                    .background(.ultraThinMaterial, in: Circle())
+                            }
+                            .padding(12)
                         }
-                        .padding(12)
                     }
                 
                 VStack(alignment: .leading, spacing: 12) {
@@ -128,7 +134,7 @@ struct DetailView: View {
                         }
                     }
 
-                    // Oyuncular (cast)
+                    // Oyuncular
                     if !detail.credits.cast.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Oyuncular")

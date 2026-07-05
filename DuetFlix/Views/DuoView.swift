@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData   // .modelContainer(AppDatabase.shared) için
 
 struct DuoView: View {
     let uid: String
@@ -18,6 +19,7 @@ struct DuoView: View {
     @State private var toastMessage: String?
     @State private var myName = ""              // kullanıcı kendi ismini girer
     @State private var isBusy = false           // kur/katıl sürerken çift tıkı önle
+    @State private var showHistory = false      // geçmiş eşleşmeler sheet'i
 
     private enum Field { case name, code }
     @FocusState private var focusedField: Field?
@@ -77,6 +79,13 @@ struct DuoView: View {
 
                     Spacer()
 
+                    // Geçmiş eşleşmeler (kalıcı, oturumlara gruplu)
+                    Button { showHistory = true } label: {
+                        Label("Geçmiş Eşleşmeler", systemImage: "clock.arrow.circlepath")
+                            .font(.subheadline.bold())
+                            .foregroundStyle(Color.ember)
+                    }
+
                     Button("Mod Değiştir", action: onChangeMode)
                         .foregroundStyle(Color.textSecondary)
                 }
@@ -101,6 +110,10 @@ struct DuoView: View {
             .onChange(of: initialCode) { _, new in if let new { joinCode = new } }
             .navigationDestination(item: $activeCode) { code in // activeCode dolunca otomatik lobiye gidilir
                 LobbyView(code: code, uid: uid)
+            }
+            .sheet(isPresented: $showHistory) {
+                MatchHistoryView()
+                    .modelContainer(AppDatabase.shared)   // sheete SwiftData deposunu ver
             }
         }
         .tint(.ember)

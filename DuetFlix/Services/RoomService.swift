@@ -49,22 +49,36 @@ final class RoomService {
         return try snapshot.data(as: Room.self)
     }
     
-    // Host oyunu başlatır desteyi yaz + statusü swiping yap + tüm oyuncuları "playing"e ekle
+    // Host oyunu başlatır desteyi AYRI alt-dokümana yaz, sonra ana odayı güncelle
     func startGame(code: String, movies: [Movie], page: Int, players: [String]) async throws {
-        let deckData = movies.map { movie in
-            [
-                "id": movie.id,
-                "title": movie.title,
-                "posterPath": movie.posterPath as Any,
-                "voteAverage": movie.voteAverage
-            ]
-        }
-        try await db.collection("rooms").document(code).updateData([ // status deck deckPage ve playing alanlarını güncelliyoruz
+        let deckData = movies.map(Self.deckEntry)
+        let ref = db.collection("rooms").document(code)
+        // 1) Büyük desteyi alt-dokümana yaz (her swipe'ta yeniden inmesin)
+        try await ref.collection("state").document("deck").setData(["movies": deckData])
+        // 2) Ana dokümanın küçük alanları — status/playing en son ki karşı taraf
+        //    swipinge geçtiğinde deste alt-dokümanı zaten hazır olsun
+        try await ref.updateData([
             "status": "swiping",
-            "deck": deckData,
             "deckPage": page,
             "playing": players
         ])
+    }
+
+    // Oyundan lobiye dön / oyunu bitir playingten uidi çıkar
+    func leaveGame(code: String, uid: String) async throws {
+        try await db.collection("rooms").document(code).updateData([
+            "playing": FieldValue.arrayRemove([uid])
+        ])
+    }
+
+    // Film → Firestore mapi
+    private static func deckEntry(_ movie: Movie) -> [String: Any] {
+        [
+            "id": movie.id,
+            "title": movie.title,
+            "posterPath": movie.posterPath as Any,
+            "voteAverage": movie.voteAverage
+        ]
     }
     
     // Bir swipe kaydet ilerlemeyi güncelle, beğendiyse film idsini likesa ekle
@@ -76,27 +90,27 @@ final class RoomService {
         try await db.collection("rooms").document(code).updateData(data)
     }
 
+    // Bir eşleşmeyi "bu gece için" listesinden çıkar → iki oyuncuda da gizlenir
+    func rejectMatch(code: String, movieID: Int) async throws {
+        try await db.collection("rooms").document(code).updateData([
+            "rejected": FieldValue.arrayUnion([movieID])
+        ])
+    }
+
     // Deste bitmeye yakın yeni sayfayı desteye ekle (mevcut olanları ekleme)
     func appendDeck(code: String, movies: [Movie], page: Int) async throws {
         let ref = db.collection("rooms").document(code)
-        let snapshot = try await ref.getDocument()
-        let existing = try? snapshot.data(as: Room.self)
-        let existingIDs = Set((existing?.deck ?? []).map(\.id))
+        let deckRef = ref.collection("state").document("deck")
+        // Alt-dokümandaki mevcut desteyi oku → aynı filmi tekrar ekleme
+        let snapshot = try await deckRef.getDocument()
+        let existing = try? snapshot.data(as: DeckDoc.self)
+        let existingIDs = Set((existing?.movies ?? []).map(\.id))
         let deckData = movies
             .filter { !existingIDs.contains($0.id) }
-            .map { movie -> [String: Any] in
-                [
-                    "id": movie.id,
-                    "title": movie.title,
-                    "posterPath": movie.posterPath as Any,
-                    "voteAverage": movie.voteAverage
-                ]
-            }
+            .map(Self.deckEntry)
         guard !deckData.isEmpty else { return }
-        try await ref.updateData([
-            "deck": FieldValue.arrayUnion(deckData),
-            "deckPage": page
-        ])
+        try await deckRef.updateData(["movies": FieldValue.arrayUnion(deckData)])
+        try await ref.updateData(["deckPage": page])
     }
 
     // 6 haneli kod üretme

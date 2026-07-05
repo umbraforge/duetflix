@@ -22,3 +22,9 @@ extension DeckMovie {
         return URL(string: "https://image.tmdb.org/t/p/w500\(posterPath)")
     }
 }
+
+// Deste, oda dokümanından ayrı bir alt-dokümanda (rooms/{code}/state/deck) saklanır.
+// Ana odaya her swipeta yazınca deste yeniden inmesin diye.
+struct DeckDoc: Codable {
+    var movies: [DeckMovie]?
+}

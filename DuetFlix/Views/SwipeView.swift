@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 import Kingfisher
 
 struct SwipeView: View {
@@ -16,6 +17,12 @@ struct SwipeView: View {
     @State private var drag: CGSize = .zero
     @State private var swipeTrigger = 0        // haptik tetikleyici
     @State private var detailMovie: DeckMovie? // detay sheet için
+    @State private var showMatches = false     // "Bu gece için" eşleşme listesi sheet'i
+    @State private var showEndConfirm = false  // "Oyunu bitir" onayı
+
+    @Environment(\.modelContext) private var context
+    @Query private var savedMatches: [SavedMatch]      // kalıcı eşleşmeler (SwiftData)
+    @Query private var watchlist: [WatchlistItem]      // izleme listesi (otomatik ekleme için)
 
     private let threshold: CGFloat = 120
 
@@ -72,9 +79,59 @@ struct SwipeView: View {
         .sensoryFeedback(.success, trigger: viewModel.newMatch?.id)
         .onAppear { viewModel.listen(code: code, uid: uid) }
         .onDisappear { viewModel.stopListening() }
+        // Eşleşen filmler değişince (deste yüklenince, yeni eşleşme, çıkarma) kalıcı
+        // listeyi (SwiftData) güncelle. matchedMovies idsi tüm bu durumlarda değişir.
+        .onChange(of: viewModel.matchedMovies.map(\.id)) { _, _ in syncSavedMatches() }
+        // Oyunu bitir → önce özet/onay
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("Bitir") { showEndConfirm = true }
+                    .tint(.ember)
+            }
+        }
+        .confirmationDialog("Oyunu bitir?", isPresented: $showEndConfirm, titleVisibility: .visible) {
+            if !viewModel.matchedMovies.isEmpty {
+                Button("Eşleşmeleri gör (\(viewModel.matchedMovies.count))") { showMatches = true }
+            }
+            Button("Lobiye dön") { viewModel.endGame(code: code) }
+            Button("İptal", role: .cancel) {}
+        } message: {
+            Text(viewModel.matchedMovies.isEmpty
+                 ? "Henüz eşleşmeniz yok."
+                 : "Bu gece için \(viewModel.matchedMovies.count) eşleşmeniz var.")
+        }
         // Filmin detayını (özet, oyuncular, nerede izlenir) sheet olarak göster
         .sheet(item: $detailMovie) { movie in
-            DetailView(movieID: movie.id)
+            DetailView(movieID: movie.id, showWatchlistButton: false)   // Duo kalp yok
+                .modelContainer(AppDatabase.shared)   // sheete SwiftData deposunu ver
+        }
+        // Eşleşen filmler listesi ("Bu gece için seçilenler")
+        .sheet(isPresented: $showMatches) {
+            MatchesView(viewModel: viewModel, code: code)
+                .modelContainer(AppDatabase.shared)   // içindeki DetailView için
+        }
+    }
+
+    // Canlı eşleşmeleri SwiftDataya yansıtma yeni eşleşme → kaydet, çıkarılan → sil.
+    // Oda kapanınca matchedMovies boşalır ama kayıtlar silinmez.
+    private func syncSavedMatches() {
+        let saved = Set(savedMatches.map(\.movieID))
+        let inWatchlist = Set(watchlist.map(\.movieID))
+        // Ekle: eşleşmiş, çıkarılmamış, henüz kaydedilmemiş
+        for movie in viewModel.matchedMovies where !saved.contains(movie.id) {
+            context.insert(SavedMatch(movieID: movie.id, title: movie.title,
+                                      posterPath: movie.posterPath, voteAverage: movie.voteAverage,
+                                      roomCode: code, partners: viewModel.memberNames))
+            // Eşleşen filmi kişisel izleme listesine de ekle (zaten yoksa)
+            // böylece elle kalple eklemeye gerek kalmaz, DetailViewde kalp dolu gelir.
+            if !inWatchlist.contains(movie.id) {
+                context.insert(WatchlistItem(movieID: movie.id, title: movie.title,
+                                             posterPath: movie.posterPath, voteAverage: movie.voteAverage))
+            }
+        }
+        // Sil kayıtlı olup artık listeden çıkarılmış (reddedilmiş) olanlar
+        for item in savedMatches where viewModel.rejectedIDs.contains(item.movieID) {
+            context.delete(item)
         }
     }
 
@@ -86,11 +143,26 @@ struct SwipeView: View {
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
             Spacer()
+
+            // Eşleşme rozeti — yalnızca en az bir eşleşme varken görünür
+            if !viewModel.matchedMovies.isEmpty {
+                Button { showMatches = true } label: {
+                    Label("\(viewModel.matchedMovies.count)", systemImage: "sparkles")
+                        .font(.subheadline.bold())
+                        .foregroundStyle(.black)
+                        .padding(.horizontal, Theme.Spacing.sm)
+                        .padding(.vertical, 6)
+                        .background(Color.ember, in: Capsule())
+                }
+                .transition(.scale.combined(with: .opacity))
+            }
+
             Label("\(viewModel.likeCount)", systemImage: "heart.fill")
                 .font(.subheadline.bold())
                 .foregroundStyle(Color.ember)
         }
         .padding(.horizontal, Theme.Spacing.sm)
+        .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.matchedMovies.count)
     }
 
     private func cardStack(width: CGFloat, height: CGFloat) -> some View {

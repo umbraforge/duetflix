@@ -15,12 +15,22 @@ struct DuetFlixApp: App {
     init() {
         FirebaseApp.configure() // uygulama açılınca firebase'i başlat (GoogleService infoyu okur bağlanır)
     }
-    
+
     var body: some Scene {
         WindowGroup {
             RootView()
                 .preferredColorScheme(.dark)
         }
-        .modelContainer(for: WatchlistItem.self) // watchlist için veritabanı
+        .modelContainer(AppDatabase.shared) // watchlist + kalıcı eşleşmeler
     }
+}
+
+enum AppDatabase {
+    static let shared: ModelContainer = {
+        do {
+            return try ModelContainer(for: WatchlistItem.self, SavedMatch.self)
+        } catch {
+            fatalError("SwiftData container oluşturulamadı: \(error)")
+        }
+    }()
 }
