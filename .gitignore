@@ -28,3 +28,7 @@ GoogleService-Info.plist
 ## Kişisel notlar — repoda yayınlanmaz (yerelde kalır)
 docs/OGRENDIKLERIM.md
 docs/ILERLEME-GUNLUGU.md
+
+## Tasarım denemeleri (ikon/afiş üretim dosyaları) — repoda yayınlanmaz
+## Not: README'nin gösterdiği posterler screenshots/ içinde, o klasör GİDER.
+design/
