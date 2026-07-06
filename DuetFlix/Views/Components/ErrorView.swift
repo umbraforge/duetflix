@@ -17,7 +17,7 @@ struct ErrorView: View {
                 .font(.largeTitle)
                 .foregroundStyle(Color.textSecondary)
 
-            Text("Bir şeyler ters gitti")
+            Text(L("error.title"))
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
 
@@ -26,7 +26,7 @@ struct ErrorView: View {
                 .foregroundStyle(Color.textSecondary)
                 .multilineTextAlignment(.center)
 
-            Button("Tekrar dene", action: retry)
+            Button(L("common.retry"), action: retry)
                 .font(.headline)
                 .foregroundStyle(Color.umbraBackground)
                 .padding(.horizontal, Theme.Spacing.lg)

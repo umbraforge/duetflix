@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     var body: some View {
-        PlaceholderScreen(title: "Profil", subtitle: "Yakında")
+        PlaceholderScreen(title: L("profile.title"), subtitle: L("common.coming_soon"))
     }
 }
 
@@ -20,12 +20,12 @@ struct DuoPlaceholder: View {
         ZStack {
             Color.umbraBackground.ignoresSafeArea()
             VStack(spacing: Theme.Spacing.lg) {
-                Text("Duo")
+                Text(L("mode.duo.title"))
                     .font(.largeTitle.bold())
                     .foregroundStyle(Color.textPrimary)
-                Text("Eşleştirme yakında (Faz 2)")
+                Text(L("common.coming_soon"))
                     .foregroundStyle(Color.textSecondary)
-                Button("Mod değiştir", action: onChangeMode)
+                Button(L("common.change_mode"), action: onChangeMode)
                     .foregroundStyle(Color.ember)
             }
         }

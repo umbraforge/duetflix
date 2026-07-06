@@ -57,10 +57,11 @@ final class LobbyViewModel {
             let joined = Set(newMembers.keys).subtracting(previousMembers.keys)   // yeni gelenler
             let left = Set(previousMembers.keys).subtracting(newMembers.keys)     // gidenler
             for id in joined where id != myUID {
-                eventMessage = "\(newMembers[id] ?? "Bir oyuncu") katıldı"
+                eventMessage = Lf("lobby.joined", newMembers[id] ?? L("lobby.a_player"))
             }
             for id in left where id != myUID {
-                eventMessage = "\(previousMembers[id] ?? "Bir oyuncu") çıktı"   // giden artık newMembersta yok ondan dolayı ismini previoustan alıyoruz
+                // giden artık newMembers'ta yok, ismini previous'tan alıyoruz
+                eventMessage = Lf("lobby.left", previousMembers[id] ?? L("lobby.a_player"))
             }
         }
         previousMembers = newMembers

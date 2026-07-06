@@ -9,20 +9,29 @@ import SwiftUI
 
 struct ModeSelectionView: View {
     let onSelect: (AppMode) -> Void // mod seçilince AppMode çağırılacak
-    
+    private let loc = LocalizationManager.shared
+
     var body: some View {
             ZStack {
                 Color.umbraBackground.ignoresSafeArea()
                 Theme.ambientGlow.ignoresSafeArea()
 
                 VStack(spacing: Theme.Spacing.xl) {
+                    // Dil değiştirici (EN / TR)
+                    HStack {
+                        Spacer()
+                        languageSwitcher
+                    }
+                    .padding(.horizontal, Theme.Spacing.lg)
+                    .padding(.top, Theme.Spacing.sm)
+
                     Spacer()
 
                     VStack(spacing: Theme.Spacing.sm) {
                         Text("DuetFlix")
                             .font(.largeTitle.bold())
                             .foregroundStyle(Color.textPrimary)
-                        Text("Nasıl izleyeceksin?")
+                        Text(L("mode.question"))
                             .font(.headline)
                             .foregroundStyle(Color.textSecondary)
                     }
@@ -32,7 +41,7 @@ struct ModeSelectionView: View {
                         Button {
                             onSelect(.solo)
                         } label: {
-                            modeCard(title: "Solo", subtitle: "Keşfet, filtrele, kaydet",
+                            modeCard(title: L("mode.solo.title"), subtitle: L("mode.solo.subtitle"),
                                      icon: "person.fill", highlighted: false)
                         }
 
@@ -40,7 +49,7 @@ struct ModeSelectionView: View {
                         Button {
                             onSelect(.duo)
                         } label: {
-                            modeCard(title: "Duo", subtitle: "Birlikte eşleş",
+                            modeCard(title: L("mode.duo.title"), subtitle: L("mode.duo.subtitle"),
                                      icon: "person.2.fill", highlighted: true)
                         }
                     }
@@ -53,6 +62,26 @@ struct ModeSelectionView: View {
                 }
             }
             .tint(.ember)
+    }
+
+    // EN / TR bayraklı seçici
+    private var languageSwitcher: some View {
+        HStack(spacing: Theme.Spacing.xs) {
+            ForEach(AppLanguage.allCases, id: \.self) { lang in
+                Button {
+                    loc.language = lang
+                } label: {
+                    HStack(spacing: 4) {
+                        Text(lang.flag)
+                        Text(lang.label).font(.caption.bold())
+                    }
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(loc.language == lang ? Color.ember : Color.umbraSurface, in: Capsule())
+                    .foregroundStyle(loc.language == lang ? Color.umbraBackground : Color.textSecondary)
+                }
+            }
+        }
     }
 
     // Mod kartı 

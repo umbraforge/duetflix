@@ -37,10 +37,10 @@ struct DuoView: View {
 
                     // İsim girişi
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("İsmin")
+                        Text(L("duo.your_name"))
                             .font(.caption)
                             .foregroundStyle(Color.textSecondary)
-                        TextField("İsmini gir", text: $myName)
+                        TextField(L("duo.name_hint"), text: $myName)
                             .focused($focusedField, equals: .name)
                             .submitLabel(.done)
                             .padding()
@@ -52,7 +52,7 @@ struct DuoView: View {
                     Button {
                         Task { await createRoom() }
                     } label: {
-                        Text("Oda Kur")
+                        Text(L("duo.create_room"))
                             .font(.headline)
                             .foregroundStyle(Color.umbraBackground)
                             .frame(maxWidth: .infinity)
@@ -63,14 +63,14 @@ struct DuoView: View {
 
                     // Odaya katılma
                     HStack {
-                        TextField("Oda Kodu", text: $joinCode)
+                        TextField(L("duo.room_code_hint"), text: $joinCode)
                             .keyboardType(.numberPad)
                             .focused($focusedField, equals: .code)
                             .padding()
                             .background(Color.umbraSurface, in: Capsule())
                             .foregroundStyle(Color.textPrimary)
 
-                        Button("Katıl") {
+                        Button(L("duo.join")) {
                             Task { await joinRoom() }
                         }
                         .foregroundStyle(Color.ember)
@@ -81,12 +81,12 @@ struct DuoView: View {
 
                     // Geçmiş eşleşmeler (kalıcı, oturumlara gruplu)
                     Button { showHistory = true } label: {
-                        Label("Geçmiş Eşleşmeler", systemImage: "clock.arrow.circlepath")
+                        Label(L("duo.history"), systemImage: "clock.arrow.circlepath")
                             .font(.subheadline.bold())
                             .foregroundStyle(Color.ember)
                     }
 
-                    Button("Mod Değiştir", action: onChangeMode)
+                    Button(L("common.change_mode"), action: onChangeMode)
                         .foregroundStyle(Color.textSecondary)
                 }
                 .padding()
@@ -124,14 +124,14 @@ struct DuoView: View {
         guard !isBusy else { return }               // zaten işlemdeyse tekrar başlatma
         focusedField = nil                          // klavyeyi kapat
         let name = myName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { showToast("Önce bir isim gir"); return }
+        guard !name.isEmpty else { showToast(L("duo.err.name_first")); return }
         isBusy = true
         defer { isBusy = false }                    // fonksiyon biterken kilidi aç
         do {
             let code = try await roomService.createRoom(hostID: uid, hostName: name)
             activeCode = code
         } catch {
-            showToast("Oda kurulamadı")
+            showToast(L("duo.err.create"))
         }
     }
 
@@ -140,25 +140,25 @@ struct DuoView: View {
         guard !isBusy else { return }
         focusedField = nil                          // klavyeyi kapat
         let name = myName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty else { showToast("Önce bir isim gir"); return }
+        guard !name.isEmpty else { showToast(L("duo.err.name_first")); return }
         let code = joinCode.trimmingCharacters(in: .whitespaces)
-        guard !code.isEmpty else { showToast("Oda kodu gir"); return }
+        guard !code.isEmpty else { showToast(L("duo.err.code_first")); return }
         isBusy = true
         defer { isBusy = false }
         do {
             // Oda var mı?
             guard let room = try await roomService.fetchRoom(code: code) else {
-                showToast("Bu koda ait bir oda yok"); return
+                showToast(L("duo.err.no_room")); return
             }
             // Bu isim odada kullanılıyor mu? (büyük/küçük harf duyarsız)
             let taken = room.members.values.contains { $0.lowercased() == name.lowercased() }
             guard !taken else {
-                showToast("Bu isim odada kullanılıyor, başka bir isim seç"); return
+                showToast(L("duo.err.name_taken")); return
             }
             try await roomService.joinRoom(code: code, uid: uid, name: name)
             activeCode = code
         } catch {
-            showToast("Katılırken hata oluştu")
+            showToast(L("duo.err.join"))
         }
     }
 

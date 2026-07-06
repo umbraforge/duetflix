@@ -50,7 +50,7 @@ struct LobbyView: View {
         // Oda silinince (host kapatınca) karşı taraf bilgilendirilip otomatik çıkar
         .onChange(of: viewModel.roomClosed) { _, closed in
             if closed && !isLeaving {
-                showToast("\(viewModel.closedBy ?? "Host") odayı kapattı")
+                showToast(Lf("lobby.closed_by", viewModel.closedBy ?? "Host"))
                 Task {
                     try? await Task.sleep(for: .seconds(1.3))
                     dismiss()
@@ -75,7 +75,7 @@ struct LobbyView: View {
                             isLeaving = true
                             await viewModel.leave(code: code, uid: uid)
                             if wasHost {
-                                showToast("Oda silindi")
+                                showToast(L("lobby.deleted"))
                                 try? await Task.sleep(for: .seconds(1.3))
                             }
                             dismiss()
@@ -94,7 +94,7 @@ struct LobbyView: View {
             Color.umbraBackground.ignoresSafeArea()
 
             VStack(spacing: Theme.Spacing.lg) {
-                Text("Oda Kodu")
+                Text(L("lobby.room_code"))
                     .font(.headline)
                     .foregroundStyle(Color.textSecondary)
 
@@ -105,7 +105,7 @@ struct LobbyView: View {
 
                     Button {
                         UIPasteboard.general.string = code
-                        showToastAutoHide("Oda kodu kopyalandı")
+                        showToastAutoHide(L("lobby.copied"))
                     } label: {
                         Image(systemName: "doc.on.doc")
                             .font(.title3)
@@ -116,7 +116,7 @@ struct LobbyView: View {
                         ShareLink(
                             item: inviteURL,
                             subject: Text("DuetFlix"),
-                            message: Text("DuetFlix'te odama katıl! Oda kodu: \(code)")
+                            message: Text(Lf("lobby.share_message", code))
                         ) {
                             Image(systemName: "square.and.arrow.up")
                                 .font(.title3)
@@ -127,7 +127,7 @@ struct LobbyView: View {
 
                 Divider().overlay(Color.textSecondary.opacity(0.3))
 
-                Text("Katılımcılar")
+                Text(L("lobby.participants"))
                     .font(.headline)
                     .foregroundStyle(Color.textPrimary)
 
@@ -136,7 +136,7 @@ struct LobbyView: View {
                         HStack(spacing: Theme.Spacing.sm) {
                             Image(systemName: "person.fill")
                                 .foregroundStyle(Color.ember)
-                            Text(memberID == uid ? "\(name) (Sen)" : name)
+                            Text(memberID == uid ? "\(name) \(L("lobby.you"))" : name)
                                 .foregroundStyle(Color.textPrimary)
                             if memberID == room.hostID {
                                 Text("(Host)")
@@ -145,7 +145,7 @@ struct LobbyView: View {
                             }
                             // swipe ekranında olanlara "Eşleşmede" rozeti
                             if room.playing?.contains(memberID) == true {
-                                Text("Eşleşmede")
+                                Text(L("lobby.matching"))
                                     .font(.caption2.bold())
                                     .foregroundStyle(Color.ember)
                                     .padding(.horizontal, 8)
@@ -167,7 +167,7 @@ struct LobbyView: View {
                     } label: {
                         HStack(spacing: Theme.Spacing.sm) {
                             Image(systemName: "arrow.uturn.forward")
-                            Text("Oyuna Dön")
+                            Text(L("lobby.rejoin"))
                         }
                         .font(.headline)
                         .foregroundStyle(Color.umbraBackground)
@@ -189,7 +189,7 @@ struct LobbyView: View {
                             } else {
                                 Image(systemName: canStart ? "play.fill" : "hourglass")
                             }
-                            Text(canStart ? "Başlat" : "Oyuncu bekleniyor…")
+                            Text(canStart ? L("lobby.start") : L("lobby.waiting"))
                         }
                         .font(.headline)
                         .foregroundStyle(canStart ? Color.umbraBackground : Color.textSecondary)
@@ -203,8 +203,7 @@ struct LobbyView: View {
                     .padding(.bottom, Theme.Spacing.sm)
                 }
 
-                Label(isHost ? "Odayı kapatmak için sol üstten çıkabilirsin"
-                             : "Odadan ayrılmak için sol üstten çıkabilirsin",
+                Label(isHost ? L("lobby.info_host") : L("lobby.info_guest"),
                       systemImage: "info.circle")
                     .font(.caption2)
                     .foregroundStyle(Color.textSecondary.opacity(0.6))

@@ -29,7 +29,7 @@ struct TMDBServiceLive : TMDBService {
     // filmlerin detaylarını çeker
     func fetchDetail(id: Int) async throws -> MovieDetail {
         guard let url = URL(string:
-            "https://api.themoviedb.org/3/movie/\(id)?language=en-US&append_to_response=credits,watch/providers")
+            "https://api.themoviedb.org/3/movie/\(id)?language=en-US&append_to_response=credits,watch/providers,translations")
         else { throw APIError.invalidURL }
 
         return try await client.fetch(url: url)
@@ -41,7 +41,7 @@ struct TMDBServiceLive : TMDBService {
 
         components.queryItems = [
             URLQueryItem(name: "query", value: query),
-            URLQueryItem(name: "language", value: "en-US"),
+            URLQueryItem(name: "language", value: "en-US"),   // orijinal başlık/poster
             URLQueryItem(name: "page", value: "1")
         ]
 

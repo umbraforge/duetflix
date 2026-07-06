@@ -26,12 +26,14 @@ struct MatchesView: View {
                 Color.umbraBackground.ignoresSafeArea()
 
                 if movies.isEmpty {
-                    ContentUnavailableView("Henüz eşleşme yok",
-                        systemImage: "sparkles",
-                        description: Text("İkinizin de beğendiği filmler burada toplanır"))
+                    ContentUnavailableView {
+                        Label(L("matches.empty.title"), systemImage: "sparkles")
+                    } description: {
+                        Text(L("matches.empty.desc"))
+                    }
                 } else {
                     ScrollView {
-                        Text("İkinizin de beğendiği \(movies.count) film")
+                        Text(Lf("matches.count", movies.count))
                             .font(.subheadline)
                             .foregroundStyle(Color.textSecondary)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,7 +52,7 @@ struct MatchesView: View {
                                     Button(role: .destructive) {
                                         viewModel.removeMatch(movieID: movie.id, code: code)
                                     } label: {
-                                        Label("Listeden çıkar", systemImage: "trash")
+                                        Label(L("common.remove"), systemImage: "trash")
                                     }
                                 }
                             }
@@ -59,7 +61,7 @@ struct MatchesView: View {
                         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: movies.count)
 
                         // Küçük bilgilendirme
-                        Label("Bir filmi çıkarmak için üzerine basılı tut",
+                        Label(L("matches.remove_hint"),
                               systemImage: "info.circle")
                             .font(.caption2)
                             .foregroundStyle(Color.textSecondary.opacity(0.6))
@@ -67,11 +69,11 @@ struct MatchesView: View {
                     }
                 }
             }
-            .navigationTitle("Bu gece için")
+            .navigationTitle(L("matches.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Kapat") { dismiss() }
+                    Button(L("common.close")) { dismiss() }
                         .tint(.ember)
                 }
             }

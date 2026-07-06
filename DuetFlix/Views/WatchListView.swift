@@ -22,9 +22,11 @@ struct WatchlistView: View {
 
                 if items.isEmpty {
                     // Boş durum
-                    ContentUnavailableView("Listen boş",
-                        systemImage: "bookmark",
-                        description: Text("Beğendiğin filmleri ❤️ ile buraya ekle"))
+                    ContentUnavailableView {
+                        Label(L("watchlist.empty.title"), systemImage: "bookmark")
+                    } description: {
+                        Text(L("watchlist.empty.desc"))
+                    }
                 } else {
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
@@ -43,7 +45,7 @@ struct WatchlistView: View {
                                     Button(role: .destructive) {
                                         context.delete(item)
                                     } label: {
-                                        Label("Listeden çıkar", systemImage: "trash")
+                                        Label(L("common.remove"), systemImage: "trash")
                                     }
                                 }
                             }
@@ -52,7 +54,7 @@ struct WatchlistView: View {
                     }
                 }
             }
-            .navigationTitle("İzleme Listesi")
+            .navigationTitle(L("tab.watchlist"))
         }
         .tint(.ember)
     }

@@ -41,9 +41,11 @@ struct MatchHistoryView: View {
                 Color.umbraBackground.ignoresSafeArea()
 
                 if matches.isEmpty {
-                    ContentUnavailableView("Henüz eşleşme yok",
-                        systemImage: "clock.arrow.circlepath",
-                        description: Text("Bir Duo oyununda eşleştiğiniz filmler burada birikir"))
+                    ContentUnavailableView {
+                        Label(L("matches.empty.title"), systemImage: "clock.arrow.circlepath")
+                    } description: {
+                        Text(L("history.empty.desc"))
+                    }
                 } else {
                     ScrollView {
                         LazyVStack(alignment: .leading, spacing: Theme.Spacing.xl) {
@@ -55,11 +57,11 @@ struct MatchHistoryView: View {
                     }
                 }
             }
-            .navigationTitle("Geçmiş Eşleşmeler")
+            .navigationTitle(L("history.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Kapat") { dismiss() }.tint(.ember)
+                    Button(L("common.close")) { dismiss() }.tint(.ember)
                 }
             }
         }
@@ -94,7 +96,7 @@ struct MatchHistoryView: View {
                         Button(role: .destructive) {
                             context.delete(match)
                         } label: {
-                            Label("Sil", systemImage: "trash")
+                            Label(L("common.delete"), systemImage: "trash")
                         }
                     }
                 }
@@ -104,11 +106,14 @@ struct MatchHistoryView: View {
 
     private func partnersLabel(_ session: [SavedMatch]) -> String {
         let names = session.first?.partners ?? []
-        return names.isEmpty ? "Duo oyunu" : names.joined(separator: " & ")
+        return names.isEmpty ? L("history.duo_game") : names.joined(separator: " & ")
     }
 
     private func dateLabel(_ session: [SavedMatch]) -> String {
         guard let date = session.first?.matchedAt else { return "" }
-        return date.formatted(date: .abbreviated, time: .shortened)
+        // Tarih biçimini uygulama diline göre 
+        let style = Date.FormatStyle(date: .abbreviated, time: .shortened)
+            .locale(LocalizationManager.shared.language.locale)
+        return date.formatted(style)
     }
 }

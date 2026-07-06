@@ -88,7 +88,7 @@ struct DetailView: View {
                     HStack(spacing: 8) {
                         Text(detail.releaseDate.prefix(4))     // "2024-02-27" → "2024"
                         if let runtime = detail.runtime {
-                            Text("• \(runtime) dk")
+                            Text("• \(runtime) \(L("detail.min"))")
                         }
                         Image(systemName: "star.fill").foregroundStyle(Color.ratingStar)
                         Text(String(format: "%.1f", detail.voteAverage))
@@ -99,7 +99,7 @@ struct DetailView: View {
                     // Tür pill'leri
                     HStack(spacing: 8) {
                         ForEach(detail.genres) { genre in
-                            Text(genre.name)
+                            Text(genre.localizedName)
                                 .font(.caption.bold())
                                 .foregroundStyle(Color.ember)
                                 .padding(.horizontal, 12)
@@ -109,7 +109,7 @@ struct DetailView: View {
                     }
                     
                     // Açıklama
-                    Text(detail.overview)
+                    Text(detail.localizedOverview)
                         .font(.body)
                         .foregroundStyle(Color.textPrimary)
                     
@@ -117,7 +117,7 @@ struct DetailView: View {
                     let providers = detail.watchProviders?.preferredProviders ?? []
                     if !providers.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Nerede izlenir")
+                            Text(L("detail.where_to_watch"))
                                 .font(.headline)
                                 .foregroundStyle(Color.textPrimary)
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -137,7 +137,7 @@ struct DetailView: View {
                     // Oyuncular
                     if !detail.credits.cast.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Oyuncular")
+                            Text(L("detail.cast"))
                                 .font(.headline)
                                 .foregroundStyle(Color.textPrimary)
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -181,7 +181,7 @@ struct DetailView: View {
     private func toggleWatchlist(_ detail: MovieDetail) {
         if let existing = watchlist.first(where: { $0.movieID == detail.id }) {
             context.delete(existing)      // varsa sil
-            showToast("İzleme Listesi'nden çıkarıldı")
+            showToast(L("detail.removed"))
         } else {
             let item = WatchlistItem(     // yoksa ekle
                 movieID: detail.id,
@@ -190,7 +190,7 @@ struct DetailView: View {
                 voteAverage: detail.voteAverage
             )
             context.insert(item)
-            showToast("İzleme Listesi'ne eklendi")
+            showToast(L("detail.added"))
         }
     }
 

@@ -18,9 +18,11 @@ struct SearchView: View {
                 Group {
                     if viewModel.query.isEmpty {
                         // Henüz arama yok
-                        ContentUnavailableView("Film ara",
-                            systemImage: "magnifyingglass",
-                            description: Text("Bir film adı yaz"))
+                        ContentUnavailableView {
+                            Label(L("search.empty.title"), systemImage: "magnifyingglass")
+                        } description: {
+                            Text(L("search.empty.desc"))
+                        }
                     } else if viewModel.results.isEmpty && !viewModel.isSearching {
                         // Sonuç yok
                         ContentUnavailableView.search(text: viewModel.query)
@@ -42,8 +44,8 @@ struct SearchView: View {
                     }
                 }
             }
-            .navigationTitle("Keşfet")
-            .searchable(text: $viewModel.query, prompt: "Film ara")
+            .navigationTitle(L("tab.discover"))
+            .searchable(text: $viewModel.query, prompt: L("search.empty.title"))
         }
         .tint(.ember)
     }

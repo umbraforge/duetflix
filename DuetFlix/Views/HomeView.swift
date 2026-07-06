@@ -29,7 +29,7 @@ struct HomeView: View {
                         Button(action: onChangeMode) {
                             HStack(spacing: 6) {
                                 Image(systemName: "rectangle.2.swap")
-                                Text("Mod")
+                                Text(L("home.mode"))
                             }
                             .font(.subheadline.weight(.semibold))
                             .foregroundStyle(Color.ember)
@@ -45,13 +45,13 @@ struct HomeView: View {
                     Group {
                         switch viewModel.state {
                         case .loading:
-                            ProgressView("Yükleniyor")
+                            ProgressView(L("common.loading"))
                         case .loaded:
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 16) {
                                     FeaturedCarousel(movies: Array(viewModel.movies.prefix(5)))   // ilk 5 film öne çıkan
 
-                                    MovieRow(title: "Popüler",
+                                    MovieRow(title: L("home.popular"),
                                              movies: Array(viewModel.movies.dropFirst(5)),
                                              onReachEnd: { Task { await viewModel.loadMore() } })
 

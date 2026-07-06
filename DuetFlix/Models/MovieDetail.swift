@@ -11,6 +11,19 @@ import Foundation
 struct Genre: Codable, Identifiable {
     let id: Int
     let name: String
+
+    // TMDB tür ID'leri sabit → Türkçe karşılıkları. TR seçiliyse Türkçe, yoksa TMDnin İngilizce adı.
+    private static let turkish: [Int: String] = [
+        28: "Aksiyon", 12: "Macera", 16: "Animasyon", 35: "Komedi", 80: "Suç",
+        99: "Belgesel", 18: "Dram", 10751: "Aile", 14: "Fantastik", 36: "Tarih",
+        27: "Korku", 10402: "Müzik", 9648: "Gizem", 10749: "Romantik",
+        878: "Bilim Kurgu", 10770: "TV Filmi", 53: "Gerilim", 10752: "Savaş", 37: "Western"
+    ]
+
+    var localizedName: String {
+        if LocalizationManager.shared.language == .tr, let tr = Genre.turkish[id] { return tr }
+        return name
+    }
 }
 
 struct MovieDetail: Codable, Identifiable {
@@ -25,7 +38,8 @@ struct MovieDetail: Codable, Identifiable {
     let genres : [Genre]
     let credits: Credits
     let watchProviders: WatchProviders?
-    
+    let translations: Translations?   // başlık/poster orijinal kalır; sadece açıklamayı buradan çeviririz
+
     enum CodingKeys: String, CodingKey {
         case id
         case title
@@ -38,6 +52,35 @@ struct MovieDetail: Codable, Identifiable {
         case genres
         case credits
         case watchProviders = "watch/providers"
+        case translations
+    }
+}
+
+// TMDB append_to_response=translations yapısı
+struct Translations: Codable {
+    let translations: [Translation]
+}
+struct Translation: Codable {
+    let iso639_1: String
+    let data: TranslationData
+    enum CodingKeys: String, CodingKey {
+        case iso639_1 = "iso_639_1"
+        case data
+    }
+}
+struct TranslationData: Codable {
+    let overview: String?
+}
+
+extension MovieDetail {
+    // Açıklama: TR seçiliyse Türkçe, yoksa orijinal
+    var localizedOverview: String {
+        if LocalizationManager.shared.language == .tr,
+           let turkish = translations?.translations.first(where: { $0.iso639_1 == "tr" })?.data.overview,
+           !turkish.isEmpty {
+            return turkish
+        }
+        return overview
     }
 }
 

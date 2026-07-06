@@ -13,16 +13,16 @@ struct MainTabView: View {
     var body: some View {
         TabView {
             HomeView(onChangeMode: onChangeMode)
-                .tabItem { Label("Ana Sayfa", systemImage: "house.fill") }
+                .tabItem { Label(L("tab.home"), systemImage: "house.fill") }
 
             SearchView()
-                .tabItem { Label("Keşfet", systemImage: "magnifyingglass") }
+                .tabItem { Label(L("tab.discover"), systemImage: "magnifyingglass") }
 
             WatchlistView()
-                .tabItem { Label("İzleme Listesi", systemImage: "bookmark.fill") }
+                .tabItem { Label(L("tab.watchlist"), systemImage: "bookmark.fill") }
 
             ProfileView()
-                .tabItem { Label("Profil", systemImage: "person.fill") }
+                .tabItem { Label(L("tab.profile"), systemImage: "person.fill") }
         }
         .tint(.ember)
     }

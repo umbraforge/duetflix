@@ -40,12 +40,12 @@ struct SwipeView: View {
 
                     if viewModel.deck.isEmpty {
                         Spacer()
-                        ProgressView("Deste yükleniyor…")
+                        ProgressView(L("swipe.deck_loading"))
                         Spacer()
                     } else if viewModel.isFinished {
                         Spacer()
                         if viewModel.refillError {
-                            ErrorView(message: "Yeni filmler yüklenemedi") {
+                            ErrorView(message: L("swipe.refill_error")) {
                                 Task { await viewModel.retryRefill(code: code) }
                             }
                         } else {
@@ -58,7 +58,7 @@ struct SwipeView: View {
                         Spacer(minLength: 0)
                         actionButtons
                         // Küçük, göze batmayan bilgilendirme
-                        Label("Kaydırarak ya da butonlarla beğen veya geç",
+                        Label(L("swipe.hint"),
                               systemImage: "info.circle")
                             .font(.caption2)
                             .foregroundStyle(Color.textSecondary.opacity(0.6))
@@ -85,20 +85,20 @@ struct SwipeView: View {
         // Oyunu bitir → önce özet/onay
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("Bitir") { showEndConfirm = true }
+                Button(L("swipe.finish")) { showEndConfirm = true }
                     .tint(.ember)
             }
         }
-        .confirmationDialog("Oyunu bitir?", isPresented: $showEndConfirm, titleVisibility: .visible) {
+        .confirmationDialog(L("swipe.end_title"), isPresented: $showEndConfirm, titleVisibility: .visible) {
             if !viewModel.matchedMovies.isEmpty {
-                Button("Eşleşmeleri gör (\(viewModel.matchedMovies.count))") { showMatches = true }
+                Button(Lf("swipe.see_matches", viewModel.matchedMovies.count)) { showMatches = true }
             }
-            Button("Lobiye dön") { viewModel.endGame(code: code) }
-            Button("İptal", role: .cancel) {}
+            Button(L("swipe.back_to_lobby")) { viewModel.endGame(code: code) }
+            Button(L("common.cancel"), role: .cancel) {}
         } message: {
             Text(viewModel.matchedMovies.isEmpty
-                 ? "Henüz eşleşmeniz yok."
-                 : "Bu gece için \(viewModel.matchedMovies.count) eşleşmeniz var.")
+                 ? L("swipe.no_matches_yet")
+                 : Lf("swipe.matches_tonight", viewModel.matchedMovies.count))
         }
         // Filmin detayını (özet, oyuncular, nerede izlenir) sheet olarak göster
         .sheet(item: $detailMovie) { movie in
@@ -224,9 +224,9 @@ struct SwipeView: View {
             // Sürükleme damgaları
             if isTop {
                 HStack {
-                    stamp("BEĞEN", color: .green, opacity: Double(max(0, drag.width) / threshold))
+                    stamp(L("swipe.stamp_like"), color: .green, opacity: Double(max(0, drag.width) / threshold))
                     Spacer()
-                    stamp("GEÇ", color: .red, opacity: Double(max(0, -drag.width) / threshold))
+                    stamp(L("swipe.stamp_pass"), color: .red, opacity: Double(max(0, -drag.width) / threshold))
                 }
                 .padding()
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -288,10 +288,10 @@ struct SwipeView: View {
             Image(systemName: "hourglass")
                 .font(.largeTitle)
                 .foregroundStyle(Color.ember)
-            Text("Tüm filmleri değerlendirdin!")
+            Text(L("swipe.all_rated"))
                 .font(.headline)
                 .foregroundStyle(Color.textPrimary)
-            Text("Yeni filmler yükleniyor…")
+            Text(L("swipe.loading_new"))
                 .font(.caption)
                 .foregroundStyle(Color.textSecondary)
             ProgressView()
@@ -305,7 +305,7 @@ struct SwipeView: View {
             Color.black.opacity(0.85).ignoresSafeArea()
 
             VStack(spacing: Theme.Spacing.lg) {
-                Text("EŞLEŞTİNİZ!")
+                Text(L("match.title"))
                     .font(.system(size: 34, weight: .heavy))
                     .foregroundStyle(Color.ember)
                     .shadow(color: Color.ember.opacity(0.5), radius: 12)
@@ -324,7 +324,7 @@ struct SwipeView: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
 
-                Text("İkiniz de bu filmi beğendiniz — bu akşamki film bu olabilir 🍿")
+                Text(L("match.subtitle"))
                     .font(.subheadline)
                     .foregroundStyle(Color.textSecondary)
                     .multilineTextAlignment(.center)
@@ -335,7 +335,7 @@ struct SwipeView: View {
                         viewModel.clearMatch()
                         detailMovie = movie
                     } label: {
-                        Text("Detayları gör")
+                        Text(L("match.see_details"))
                             .font(.headline)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -343,7 +343,7 @@ struct SwipeView: View {
                             .foregroundStyle(.black)
                     }
 
-                    Button("Kaydırmaya devam") { viewModel.clearMatch() }
+                    Button(L("match.keep_swiping")) { viewModel.clearMatch() }
                         .font(.subheadline.bold())
                         .foregroundStyle(Color.textSecondary)
                         .padding(.top, Theme.Spacing.xs)
