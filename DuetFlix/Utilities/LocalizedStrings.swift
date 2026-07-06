@@ -75,6 +75,7 @@ enum LocalizedStrings {
     private static let discover: [String: LocPair] = [
         "search.empty.title":    ("Film ara", "Search films"),
         "search.empty.desc":     ("Bir film adı yaz", "Type a film name"),
+        "search.error":          ("İnternet bağlantını kontrol et", "Check your internet connection"),
         "watchlist.empty.title": ("Listen boş", "Your list is empty"),
         "watchlist.empty.desc":  ("Beğendiğin filmleri ❤️ ile buraya ekle", "Add films you like with ❤️"),
     ]

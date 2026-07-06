@@ -87,7 +87,7 @@ final class LobbyViewModel {
                 ])
             }
         } catch {
-            print("Ayrılma hatası:", error)
+            // Ayrılma başarısız olsa da ekrandan çıkılıyor sessizce yoksay
         }
     }
 
@@ -98,7 +98,7 @@ final class LobbyViewModel {
                 "playing": FieldValue.arrayRemove([uid])
             ])
         } catch {
-            print("Lobiye dönüş hatası:", error)
+            // Geçici hata dinleyici bir sonraki snapshotta durumu düzeltir
         }
     }
 
@@ -109,7 +109,7 @@ final class LobbyViewModel {
                 "playing": FieldValue.arrayUnion([uid])
             ])
         } catch {
-            print("Oyuna dönüş hatası:", error)
+            // Geçici hata dinleyici bir sonraki snapshotta durumu düzeltir
         }
     }
 

@@ -23,6 +23,9 @@ struct SearchView: View {
                         } description: {
                             Text(L("search.empty.desc"))
                         }
+                    } else if viewModel.didFail && viewModel.results.isEmpty && !viewModel.isSearching {
+                        // Ağ hatası — "sonuç yok" ile karıştırma
+                        ErrorView(message: L("search.error")) { viewModel.retry() }
                     } else if viewModel.results.isEmpty && !viewModel.isSearching {
                         // Sonuç yok
                         ContentUnavailableView.search(text: viewModel.query)

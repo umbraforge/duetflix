@@ -15,9 +15,13 @@ final class SearchViewModel {
     }
     private(set) var results: [Movie] = []
     private(set) var isSearching = false
+    private(set) var didFail = false             // ağ hatası oldu mu (sonuç yok'tan ayırmak için)
 
     private let service: TMDBService
     private var searchTask: Task<Void, Never>?   // çalışan aramayı iptal edebilmek için
+
+    // Aynı sorguyu tekrar dene (ErrorView'in "Tekrar dene" butonu için)
+    func retry() { scheduleSearch() }
 
     init(service: TMDBService = TMDBServiceLive()) {
         self.service = service
@@ -30,6 +34,7 @@ final class SearchViewModel {
         let text = query.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else {
             results = []
+            didFail = false
             return
         }
 
@@ -39,10 +44,12 @@ final class SearchViewModel {
             if Task.isCancelled { return }   // bu arada yeni harf geldiyse çık
 
             isSearching = true
+            didFail = false
             do {
                 results = try await service.fetchSearch(query: text)
             } catch {
                 results = []
+                didFail = true               // "sonuç yok" değil, ağ hatası
             }
             isSearching = false
         }

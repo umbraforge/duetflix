@@ -25,7 +25,7 @@ final class AuthService {
             let result = try await Auth.auth().signInAnonymously() // anonim giriş yap
             uid = result.user.uid
         } catch {
-            print("Auth hatası: ", error)
+            // Anonim giriş başarısız — uid nil kalır, Duo ekranı denemeyi tekrar tetikler
         }
     }
 }
