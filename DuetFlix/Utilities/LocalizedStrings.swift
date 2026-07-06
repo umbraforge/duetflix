@@ -22,6 +22,7 @@ enum LocalizedStrings {
         .merging(lobby) { a, _ in a }
         .merging(swipe) { a, _ in a }
         .merging(matches) { a, _ in a }
+        .merging(profile) { a, _ in a }
 
     // Common
     private static let common: [String: LocPair] = [
@@ -144,5 +145,16 @@ enum LocalizedStrings {
         "history.title":       ("Geçmiş Eşleşmeler", "Match History"),
         "history.empty.desc":  ("Bir Duo oyununda eşleştiğiniz filmler burada birikir", "Films you matched on in a Duo game collect here"),
         "history.duo_game":    ("Duo oyunu", "Duo game"),
+    ]
+
+    // Profile / About
+    private static let profile: [String: LocPair] = [
+        "profile.made_by":     ("UmbraForge tarafından", "by UmbraForge"),
+        "profile.language":    ("Dil", "Language"),
+        "profile.about":       ("Hakkında", "About"),
+        "profile.version":     ("Sürüm", "Version"),
+        "profile.data_source": ("Film verileri", "Film data"),
+        "profile.tmdb_attr":   ("Bu uygulama TMDB API'sini kullanır ancak TMDB tarafından onaylanmış ya da sertifikalandırılmış değildir.",
+                                "This product uses the TMDB API but is not endorsed or certified by TMDB."),
     ]
 }

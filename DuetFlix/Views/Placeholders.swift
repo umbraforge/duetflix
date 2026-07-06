@@ -7,12 +7,6 @@
 
 import SwiftUI
 
-struct ProfileView: View {
-    var body: some View {
-        PlaceholderScreen(title: L("profile.title"), subtitle: L("common.coming_soon"))
-    }
-}
-
 struct DuoPlaceholder: View {
     let onChangeMode: () -> Void
 
