@@ -84,6 +84,7 @@ struct LobbyView: View {
                 } label: {
                     Image(systemName: "chevron.left")
                 }
+                .accessibilityLabel(L("a11y.back"))
             }
         }
     }
@@ -111,6 +112,7 @@ struct LobbyView: View {
                             .font(.title3)
                             .foregroundStyle(Color.textSecondary)
                     }
+                    .accessibilityLabel(L("a11y.copy_code"))
 
                     if let inviteURL = URL(string: "duetflix://join?code=\(code)") {
                         ShareLink(
@@ -122,6 +124,7 @@ struct LobbyView: View {
                                 .font(.title3)
                                 .foregroundStyle(Color.textSecondary)
                         }
+                        .accessibilityLabel(L("a11y.share_room"))
                     }
                 }
 

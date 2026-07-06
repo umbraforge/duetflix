@@ -251,7 +251,7 @@ struct SwipeView: View {
 
     private var actionButtons: some View {
         HStack(spacing: 32) {
-            circleButton(icon: "xmark", color: .red) { performSwipe(like: false) }
+            circleButton(icon: "xmark", color: .red, label: L("a11y.pass")) { performSwipe(like: false) }
 
             // Detay (info) — mevcut kartın detayını sheet aç
             Button {
@@ -264,13 +264,14 @@ struct SwipeView: View {
                     .background(Color.umbraSurface, in: Circle())
                     .overlay(Circle().stroke(Color.textSecondary.opacity(0.3), lineWidth: 1))
             }
+            .accessibilityLabel(L("a11y.details"))
 
-            circleButton(icon: "heart.fill", color: .ember) { performSwipe(like: true) }
+            circleButton(icon: "heart.fill", color: .ember, label: L("a11y.like")) { performSwipe(like: true) }
         }
         .padding(.top, Theme.Spacing.sm)
     }
 
-    private func circleButton(icon: String, color: Color, action: @escaping () -> Void) -> some View {
+    private func circleButton(icon: String, color: Color, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: icon)
                 .font(.title.bold())
@@ -279,6 +280,7 @@ struct SwipeView: View {
                 .background(Color.umbraSurface, in: Circle())
                 .overlay(Circle().stroke(color.opacity(0.4), lineWidth: 1))
         }
+        .accessibilityLabel(label)
     }
 
     // Deste bitti durumu

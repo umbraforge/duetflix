@@ -75,6 +75,7 @@ struct DetailView: View {
                                     .padding(10)
                                     .background(.ultraThinMaterial, in: Circle())
                             }
+                            .accessibilityLabel(isSaved(detail) ? L("a11y.remove_watchlist") : L("a11y.add_watchlist"))
                             .padding(12)
                         }
                     }

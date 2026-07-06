@@ -23,6 +23,7 @@ enum LocalizedStrings {
         .merging(swipe) { a, _ in a }
         .merging(matches) { a, _ in a }
         .merging(profile) { a, _ in a }
+        .merging(a11y) { a, _ in a }
 
     // Common
     private static let common: [String: LocPair] = [
@@ -156,5 +157,17 @@ enum LocalizedStrings {
         "profile.data_source": ("Film verileri", "Film data"),
         "profile.tmdb_attr":   ("Bu uygulama TMDB API'sini kullanır ancak TMDB tarafından onaylanmış ya da sertifikalandırılmış değildir.",
                                 "This product uses the TMDB API but is not endorsed or certified by TMDB."),
+    ]
+
+    // Accessibility (VoiceOver) — ikon-only kontroller
+    private static let a11y: [String: LocPair] = [
+        "a11y.pass":             ("Geç", "Pass"),
+        "a11y.like":             ("Beğen", "Like"),
+        "a11y.details":          ("Film detayları", "Film details"),
+        "a11y.add_watchlist":    ("İzleme listesine ekle", "Add to watchlist"),
+        "a11y.remove_watchlist": ("İzleme listesinden çıkar", "Remove from watchlist"),
+        "a11y.copy_code":        ("Oda kodunu kopyala", "Copy room code"),
+        "a11y.share_room":       ("Odayı paylaş", "Share room"),
+        "a11y.back":             ("Geri", "Back"),
     ]
 }
