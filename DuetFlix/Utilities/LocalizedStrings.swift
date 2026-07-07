@@ -93,6 +93,7 @@ enum LocalizedStrings {
         "duo.err.code_first": ("Oda kodu gir", "Enter a room code"),
         "duo.err.no_room":    ("Bu koda ait bir oda yok", "No room with that code"),
         "duo.err.name_taken": ("Bu isim odada kullanılıyor, başka bir isim seç", "That name is taken, choose another"),
+        "duo.err.name_invalid": ("Lütfen uygun bir isim gir", "Please choose an appropriate name"),
         "duo.err.join":       ("Katılırken hata oluştu", "Error joining the room"),
     ]
 

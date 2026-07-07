@@ -43,6 +43,9 @@ struct DuoView: View {
                         TextField(L("duo.name_hint"), text: $myName)
                             .focused($focusedField, equals: .name)
                             .submitLabel(.done)
+                            .onChange(of: myName) { _, new in
+                                if new.count > NameGuard.maxLength { myName = String(new.prefix(NameGuard.maxLength)) }
+                            }
                             .padding()
                             .background(Color.umbraSurface, in: Capsule())
                             .foregroundStyle(Color.textPrimary)
@@ -123,8 +126,9 @@ struct DuoView: View {
     private func createRoom() async {
         guard !isBusy else { return }               // zaten işlemdeyse tekrar başlatma
         focusedField = nil                          // klavyeyi kapat
-        let name = myName.trimmingCharacters(in: .whitespaces)
+        let name = NameGuard.trimmed(myName)
         guard !name.isEmpty else { showToast(L("duo.err.name_first")); return }
+        guard NameGuard.isClean(name) else { showToast(L("duo.err.name_invalid")); return }
         isBusy = true
         defer { isBusy = false }                    // fonksiyon biterken kilidi aç
         do {
@@ -139,8 +143,9 @@ struct DuoView: View {
     private func joinRoom() async {
         guard !isBusy else { return }
         focusedField = nil                          // klavyeyi kapat
-        let name = myName.trimmingCharacters(in: .whitespaces)
+        let name = NameGuard.trimmed(myName)
         guard !name.isEmpty else { showToast(L("duo.err.name_first")); return }
+        guard NameGuard.isClean(name) else { showToast(L("duo.err.name_invalid")); return }
         let code = joinCode.trimmingCharacters(in: .whitespaces)
         guard !code.isEmpty else { showToast(L("duo.err.code_first")); return }
         isBusy = true
