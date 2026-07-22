@@ -17,11 +17,30 @@
 import Foundation
 import FirebaseFirestore // firebase firestore database import
 
+// App Review demo modu: incelemeci Duo eşleşmesini TEK cihazda görebilsin diye.
+// Join kutusuna `code` girilince, odaya otomatik bir simüle "partner" eklenir;
+// bu partner destedeki tüm filmleri beğenmiş sayılır, böylece incelemeci herhangi
+// bir filme sağa kaydırdığında anında eşleşme (kutlama) tetiklenir.
+// Not: 2.1(a) — tüm özelliklerin tek cihazda doğrulanabilmesi için.
+enum DemoMode {
+    static let code = "000000"          // join kutusuna girilecek gizli kod
+    static let botUID = "demo-partner"  // simüle partnerin sabit "uid"i
+    static let botName = "Demo Partner" // lobide/geçmişte görünecek ad
+}
+
 @MainActor
 @Observable
 final class RoomService {
     private let db = Firestore.firestore()
-    
+
+    // Oda/deste bu süre boyunca yaşar; aktivite (oda kur / başlat / swipe / refill)
+    // oldukça tazelenir. Süre dolunca Firestore TTL policy dökümanı otomatik siler
+    // → hayalet oda temizliği (force-quit / internet kopması durumları).
+    static let ttl: TimeInterval = 12 * 60 * 60   // 12 saat
+    private static func expiry() -> Timestamp {
+        Timestamp(date: Date().addingTimeInterval(ttl))
+    }
+
     // Oda kurma, kod üretme, firestore'a yazma, kodu döndür
     func createRoom(hostID: String, hostName: String) async throws -> String {
         let code = Self.generateCode()
@@ -29,7 +48,23 @@ final class RoomService {
             "hostID": hostID,
             "status": "lobby",
             "createdAt": FieldValue.serverTimestamp(),
-            "members": [hostID: hostName]   // uid → isim
+            "members": [hostID: hostName],   // uid → isim
+            "expiresAt": Self.expiry()
+        ])
+        return code
+    }
+
+    // App Review demo odası: incelemeci host olur + simüle partner baştan üye eklenir.
+    // Böylece "Başlat" butonu (>= 2 üye şartı) hemen aktif olur ve Duo akışı tek
+    // cihazda test edilebilir. (create kuralı: host kendini üye ekliyor → geçerli.)
+    func createDemoRoom(hostID: String, hostName: String) async throws -> String {
+        let code = Self.generateCode()
+        try await db.collection("rooms").document(code).setData([
+            "hostID": hostID,
+            "status": "lobby",
+            "createdAt": FieldValue.serverTimestamp(),
+            "members": [hostID: hostName, DemoMode.botUID: DemoMode.botName],
+            "expiresAt": Self.expiry()
         ])
         return code
     }
@@ -49,18 +84,31 @@ final class RoomService {
         return try snapshot.data(as: Room.self)
     }
     
-    // Host oyunu başlatır desteyi AYRI alt-dokümana yaz, sonra ana odayı güncelle
+    // Host oyunu başlatır desteyi AYRI dokümana yaz, sonra ana odayı güncelle
     func startGame(code: String, movies: [Movie], page: Int, players: [String]) async throws {
         let deckData = movies.map(Self.deckEntry)
         let ref = db.collection("rooms").document(code)
-        // 1) Büyük desteyi alt-dokümana yaz (her swipe'ta yeniden inmesin)
-        try await ref.collection("state").document("deck").setData(["movies": deckData])
+        // 1) Büyük desteyi ÜST SEVİYE decks/{code} dokümanına yaz (her swipe'ta
+        //    yeniden inmesin). Üst seviye ki TTL onu da otomatik silebilsin.
+        try await db.collection("decks").document(code).setData([
+            "movies": deckData,
+            "expiresAt": Self.expiry()
+        ])
         // 2) Ana dokümanın küçük alanları — status/playing en son ki karşı taraf
-        //    swipinge geçtiğinde deste alt-dokümanı zaten hazır olsun
+        //    swipinge geçtiğinde deste dokümanı zaten hazır olsun
         try await ref.updateData([
             "status": "swiping",
             "deckPage": page,
-            "playing": players
+            "playing": players,
+            "expiresAt": Self.expiry()
+        ])
+    }
+
+    // Demo modu: simüle partner destedeki TÜM filmleri beğenmiş say. Böylece
+    // incelemeci herhangi bir filme "beğen" derse kesişim dolar → anında eşleşme.
+    func seedDemoLikes(code: String, movieIDs: [Int]) async throws {
+        try await db.collection("rooms").document(code).updateData([
+            "likes.\(DemoMode.botUID)": movieIDs
         ])
     }
 
@@ -71,13 +119,12 @@ final class RoomService {
         ])
     }
 
-    // Odayı komple sil: ÖNCE deste alt-dokümanını, SONRA ana dokümanı.
-    // (Firestore doküman silince alt-koleksiyonu silmez → yetim kalmasın.
-    //  Sıra önemli: deste silme yetkisi ana doküman var olup üyelik kontrolü ister.)
+    // Odayı komple sil: ÖNCE deste (üst seviye decks/{code}), SONRA ana oda.
+    // Sıra önemli: deste silme yetkisi ana odada üyelik kontrolü ister; ana oda
+    // silinmeden önce deste silinmeli.
     func deleteRoom(code: String) async throws {
-        let ref = db.collection("rooms").document(code)
-        try await ref.collection("state").document("deck").delete()
-        try await ref.delete()
+        try await db.collection("decks").document(code).delete()
+        try await db.collection("rooms").document(code).delete()
     }
 
     // Film → Firestore mapi
@@ -96,6 +143,7 @@ final class RoomService {
         if let likedMovieID {
             data["likes.\(uid)"] = FieldValue.arrayUnion([likedMovieID])
         }
+        data["expiresAt"] = Self.expiry()   // aktivite oldukça oda ömrünü uzat (TTL tazele)
         try await db.collection("rooms").document(code).updateData(data)
     }
 
@@ -108,9 +156,8 @@ final class RoomService {
 
     // Deste bitmeye yakın yeni sayfayı desteye ekle (mevcut olanları ekleme)
     func appendDeck(code: String, movies: [Movie], page: Int) async throws {
-        let ref = db.collection("rooms").document(code)
-        let deckRef = ref.collection("state").document("deck")
-        // Alt-dokümandaki mevcut desteyi oku → aynı filmi tekrar ekleme
+        let deckRef = db.collection("decks").document(code)
+        // Mevcut desteyi oku → aynı filmi tekrar ekleme
         let snapshot = try await deckRef.getDocument()
         let existing = try? snapshot.data(as: DeckDoc.self)
         let existingIDs = Set((existing?.movies ?? []).map(\.id))
@@ -118,16 +165,25 @@ final class RoomService {
             .filter { !existingIDs.contains($0.id) }
             .map(Self.deckEntry)
         guard !deckData.isEmpty else { return }
-        try await deckRef.updateData(["movies": FieldValue.arrayUnion(deckData)])
-        try await ref.updateData(["deckPage": page])
+        try await deckRef.updateData([
+            "movies": FieldValue.arrayUnion(deckData),
+            "expiresAt": Self.expiry()
+        ])
+        try await db.collection("rooms").document(code).updateData([
+            "deckPage": page,
+            "expiresAt": Self.expiry()
+        ])
     }
 
-    // 6 haneli kod üretme
+    // 6 haneli kod üretme. Demo koduna (000000) denk gelirse yeniden üret →
+    // gerçek bir oda demo tetikleyici koduyla çakışmasın (join demo moda düşmesin).
     static func generateCode() -> String {
-        let randomCode = Int.random(in: 0...999999) // 0 ile 999999 arası random bir code
-        let randomStringCode = String(format: "%06d", randomCode)
-        
-        return randomStringCode
+        var code: String
+        repeat {
+            let randomCode = Int.random(in: 0...999999) // 0 ile 999999 arası random bir code
+            code = String(format: "%06d", randomCode)
+        } while code == DemoMode.code
+        return code
     }
  }
 

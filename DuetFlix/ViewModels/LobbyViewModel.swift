@@ -122,6 +122,11 @@ final class LobbyViewModel {
             let movies = try await tmdb.fetchPopular(page: 1)     // ilk 20 popüler
             let players = Array((room?.members ?? [:]).keys)       // başlarken herkes oyunda
             try await roomService.startGame(code: code, movies: movies, page: 1, players: players)
+            // App Review demo modu: simüle partner varsa tüm filmleri "beğenmiş" say
+            // → incelemeci tek cihazda ilk beğenisinde eşleşmeyi görür.
+            if room?.members[DemoMode.botUID] != nil {
+                try await roomService.seedDemoLikes(code: code, movieIDs: movies.map(\.id))
+            }
         } catch {
             errorMessage = error.localizedDescription
         }

@@ -40,13 +40,15 @@ service cloud.firestore {
       // Silme: odayı yalnızca üyeler silebilir (host kapatır / son kişi çıkar —
       // her ikisi de o an üyedir)
       allow delete: if isMember();
+    }
 
-      // Deste alt-dokümanı (rooms/{code}/state/deck): yalnızca odanın üyeleri
-      match /state/{docId} {
-        allow read, write: if signedIn()
-          && request.auth.uid in
-             get(/databases/$(database)/documents/rooms/$(code)).data.members;
-      }
+    // Deste (üst seviye decks/{code}): yalnızca ilgili odanın üyeleri okuyup yazar.
+    // Üst seviyede tutulur ki TTL policy odayla birlikte otomatik silebilsin
+    // (TTL alt-koleksiyonlara inmez).
+    match /decks/{code} {
+      allow read, write: if signedIn()
+        && request.auth.uid in
+           get(/databases/$(database)/documents/rooms/$(code)).data.members;
     }
 
     // Diğer her şey kapalı (varsayılan deny)

@@ -65,9 +65,9 @@ final class SwipeViewModel {
             self.updateMatches(likes: room.likes)         // ortak beğenileri hesapla
         }
 
-        // 2) Deste alt-dokümanı: büyük ama sadece başlangıç + refill'de değişir
+        // 2) Deste: üst seviye decks/{code} — büyük ama sadece başlangıç + refill'de değişir
         deckListener?.remove()
-        deckListener = roomRef.collection("state").document("deck")
+        deckListener = db.collection("decks").document(code)
             .addSnapshotListener { [weak self] snapshot, _ in
                 guard let self, let doc = try? snapshot?.data(as: DeckDoc.self) else { return }
                 self.deck = doc.movies ?? []

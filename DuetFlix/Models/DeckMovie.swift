@@ -23,8 +23,10 @@ extension DeckMovie {
     }
 }
 
-// Deste, oda dokümanından ayrı bir alt-dokümanda (rooms/{code}/state/deck) saklanır.
-// Ana odaya her swipeta yazınca deste yeniden inmesin diye.
+// Deste, oda dokümanından ayrı ÜST SEVİYE bir dokümanda (decks/{code}) saklanır.
+// Ana odaya her swipeta yazınca deste yeniden inmesin diye + TTL ile otomatik
+// silinebilsin diye (alt-koleksiyon olsaydı TTL onu temizleyemezdi).
 struct DeckDoc: Codable {
     var movies: [DeckMovie]?
 }
+    

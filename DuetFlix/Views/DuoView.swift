@@ -150,6 +150,16 @@ struct DuoView: View {
         guard !code.isEmpty else { showToast(L("duo.err.code_first")); return }
         isBusy = true
         defer { isBusy = false }
+        // App Review demo kodu: gerçek odaya katılmak yerine, simüle partnerli
+        // bir demo oda kur ve lobiye geç (tek cihazda Duo eşleşmesini test etmek için).
+        if code == DemoMode.code {
+            do {
+                activeCode = try await roomService.createDemoRoom(hostID: uid, hostName: name)
+            } catch {
+                showToast(L("duo.err.join"))
+            }
+            return
+        }
         do {
             // Oda var mı?
             guard let room = try await roomService.fetchRoom(code: code) else {
