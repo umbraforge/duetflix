@@ -28,8 +28,10 @@ struct TMDBServiceLive : TMDBService {
     }
     // filmlerin detaylarını çeker
     func fetchDetail(id: Int) async throws -> MovieDetail {
+        // videos: fragman listesi. include_video_language=en,tr → hem İngilizce hem
+        // (varsa) Türkçe fragmanlar gelsin; seçimi MovieDetail.trailerKey yapar.
         guard let url = URL(string:
-            "https://api.themoviedb.org/3/movie/\(id)?language=en-US&append_to_response=credits,watch/providers,translations")
+            "https://api.themoviedb.org/3/movie/\(id)?language=en-US&append_to_response=credits,watch/providers,translations,videos&include_video_language=en,tr")
         else { throw APIError.invalidURL }
 
         return try await client.fetch(url: url)

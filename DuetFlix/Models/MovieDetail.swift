@@ -39,6 +39,7 @@ struct MovieDetail: Codable, Identifiable {
     let credits: Credits
     let watchProviders: WatchProviders?
     let translations: Translations?   // başlık/poster orijinal kalır; sadece açıklamayı buradan çeviririz
+    let videos: Videos?               // fragmanlar (YouTube)
 
     enum CodingKeys: String, CodingKey {
         case id
@@ -53,6 +54,47 @@ struct MovieDetail: Codable, Identifiable {
         case credits
         case watchProviders = "watch/providers"
         case translations
+        case videos
+    }
+}
+
+// TMDB append_to_response=videos yapısı
+struct Videos: Codable {
+    let results: [Video]
+}
+struct Video: Codable, Identifiable {
+    let id: String
+    let key: String        // YouTube anahtarı → youtube.com/watch?v=KEY
+    let site: String       // "YouTube", "Vimeo"...
+    let type: String       // "Trailer", "Teaser", "Clip"...
+    let official: Bool
+    let iso639_1: String   // videonun dili ("en", "tr"...)
+    enum CodingKeys: String, CodingKey {
+        case id, key, site, type, official
+        case iso639_1 = "iso_639_1"
+    }
+}
+
+extension MovieDetail {
+    // Gösterilecek YouTube fragman anahtarı. TR seçiliyse önce Türkçe fragman, yoksa
+    // İngilizce, o da yoksa eldeki herhangi bir YouTube fragmanı. Her dilde sıralama:
+    // official Trailer > Trailer > official Teaser > Teaser. Fragman yoksa nil.
+    var trailerKey: String? {
+        let youtube = videos?.results.filter { $0.site == "YouTube" } ?? []
+        guard !youtube.isEmpty else { return nil }
+
+        func best(_ pool: [Video]) -> Video? {
+            let trailers = pool.filter { $0.type == "Trailer" }
+            let teasers  = pool.filter { $0.type == "Teaser" }
+            return trailers.first(where: \.official) ?? trailers.first
+                ?? teasers.first(where: \.official)  ?? teasers.first
+        }
+
+        if LocalizationManager.shared.language == .tr,
+           let tr = best(youtube.filter { $0.iso639_1 == "tr" }) {
+            return tr.key
+        }
+        return (best(youtube.filter { $0.iso639_1 == "en" }) ?? best(youtube))?.key
     }
 }
 

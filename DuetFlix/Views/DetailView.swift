@@ -16,6 +16,7 @@ struct DetailView: View {
     @Environment(\.modelContext) private var context
     @Query private var watchlist: [WatchlistItem]
     @State private var toastMessage: String?
+    @State private var showTrailer = false   // fragman tam ekran oynatıcısı
 
     init(movieID: Int, showWatchlistButton: Bool = true) {
         self.movieID = movieID
@@ -62,6 +63,20 @@ struct DetailView: View {
                     .placeholder { Color.umbraSurface }
                     .resizable()
                     .aspectRatio(16/9, contentMode: .fit)
+                    .overlay {
+                        // Fragman varsa backdrop ortasında ember play butonu → tam ekran oynatıcı
+                        if detail.trailerKey != nil {
+                            Button { showTrailer = true } label: {
+                                Image(systemName: "play.fill")
+                                    .font(.title2)
+                                    .foregroundStyle(.white)
+                                    .padding(22)
+                                    .background(Color.ember.opacity(0.92), in: Circle())
+                                    .shadow(color: .black.opacity(0.4), radius: 10)
+                            }
+                            .accessibilityLabel(L("a11y.play_trailer"))
+                        }
+                    }
                     .overlay(alignment: .topTrailing) {
                         // Kalp (izleme listesi) yalnızca Solo'da. Duo'da eşleşenler
                         // otomatik eklendiği için burada gösterilmez.
@@ -171,8 +186,14 @@ struct DetailView: View {
                 .padding(.horizontal)
             }
         }
+        // Fragman tam ekran oynatıcı (fragman anahtarı varsa oynatır)
+        .fullScreenCover(isPresented: $showTrailer) {
+            if let key = detail.trailerKey {
+                TrailerPlayerView(youtubeKey: key)
+            }
+        }
     }
-    
+
     // Bu film zaten listede mi?
     private func isSaved(_ detail: MovieDetail) -> Bool {
         watchlist.contains { $0.movieID == detail.id }

@@ -172,5 +172,7 @@ enum LocalizedStrings {
         "a11y.copy_code":        ("Oda kodunu kopyala", "Copy room code"),
         "a11y.share_room":       ("Odayı paylaş", "Share room"),
         "a11y.back":             ("Geri", "Back"),
+        "a11y.play_trailer":     ("Fragmanı oynat", "Play trailer"),
+        "a11y.close":            ("Kapat", "Close"),
     ]
 }
