@@ -41,10 +41,13 @@ final class RoomService {
         Timestamp(date: Date().addingTimeInterval(ttl))
     }
 
-    // Oda kurma, kod üretme, firestore'a yazma, kodu döndür
-    func createRoom(hostID: String, hostName: String) async throws -> String {
+    // Oda kurma: kodu LOKAL üret, yazımı sunucu onayını BEKLEMEDEN (fire-and-forget)
+    // gönder → kullanıcı anında lobiye geçer. Firestore yazımı lokal cache'e hemen
+    // uygulanır + diske kalıcı kuyruğa yazılır (uygulama kapansa bile sonraki açılışta
+    // sunucuya gider), listener odayı cache'ten anında görür.
+    func createRoom(hostID: String, hostName: String) -> String {
         let code = Self.generateCode()
-        try await db.collection("rooms").document(code).setData([
+        db.collection("rooms").document(code).setData([
             "hostID": hostID,
             "status": "lobby",
             "createdAt": FieldValue.serverTimestamp(),
@@ -57,9 +60,9 @@ final class RoomService {
     // App Review demo odası: incelemeci host olur + simüle partner baştan üye eklenir.
     // Böylece "Başlat" butonu (>= 2 üye şartı) hemen aktif olur ve Duo akışı tek
     // cihazda test edilebilir. (create kuralı: host kendini üye ekliyor → geçerli.)
-    func createDemoRoom(hostID: String, hostName: String) async throws -> String {
+    func createDemoRoom(hostID: String, hostName: String) -> String {
         let code = Self.generateCode()
-        try await db.collection("rooms").document(code).setData([
+        db.collection("rooms").document(code).setData([
             "hostID": hostID,
             "status": "lobby",
             "createdAt": FieldValue.serverTimestamp(),
@@ -69,10 +72,11 @@ final class RoomService {
         return code
     }
 
-    // Odaya katılma members mapine uid = isim ekleme
-    // "members.\(uid)" = map içindeki tek bir anahtarı ayarlar 
-    func joinRoom(code: String, uid: String, name: String) async throws {
-        try await db.collection("rooms").document(code).updateData([
+    // Odaya katılma members mapine uid = isim ekleme.
+    // Fire-and-forget: fetchRoom (oda var mı + isim çakışması) çağıran tarafta zaten
+    // beklendi; bu YAZIMI ayrıca beklemeye gerek yok → kullanıcı anında lobiye geçer.
+    func joinRoom(code: String, uid: String, name: String) {
+        db.collection("rooms").document(code).updateData([
             "members.\(uid)": name
         ])
     }
@@ -121,10 +125,11 @@ final class RoomService {
 
     // Odayı komple sil: ÖNCE deste (üst seviye decks/{code}), SONRA ana oda.
     // Sıra önemli: deste silme yetkisi ana odada üyelik kontrolü ister; ana oda
-    // silinmeden önce deste silinmeli.
-    func deleteRoom(code: String) async throws {
-        try await db.collection("decks").document(code).delete()
-        try await db.collection("rooms").document(code).delete()
+    // silinmeden önce deste silinmeli. Fire-and-forget: sunucu onayını beklemeden
+    // gönderilir (kuyruğa sırayla girer) → kullanıcı ekrandan anında çıkar.
+    func deleteRoom(code: String) {
+        db.collection("decks").document(code).delete()
+        db.collection("rooms").document(code).delete()
     }
 
     // Film → Firestore mapi

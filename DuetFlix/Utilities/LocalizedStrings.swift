@@ -108,6 +108,7 @@ enum LocalizedStrings {
         "lobby.waiting":       ("Oyuncu bekleniyor…", "Waiting for a player…"),
         "lobby.info_host":     ("Odayı kapatmak için sol üstten çıkabilirsin", "Close the room from the top-left"),
         "lobby.info_guest":    ("Odadan ayrılmak için sol üstten çıkabilirsin", "Leave the room from the top-left"),
+        "lobby.info_ttl":      ("Kullanılmayan odalar 12 saat sonra otomatik silinir", "Unused rooms are automatically deleted after 12 hours"),
         "lobby.deleted":       ("Oda silindi", "Room deleted"),
         "lobby.copied":        ("Oda kodu kopyalandı", "Room code copied"),
         "lobby.closed_by":     ("%@ odayı kapattı", "%@ closed the room"),

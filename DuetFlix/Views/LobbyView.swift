@@ -65,21 +65,14 @@ struct LobbyView: View {
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
-                    Task {
-                        if isPlaying {
-                            // Oyundaysam → sadece lobiye dön (oda silinmez)
-                            await viewModel.exitToLobby(code: code, uid: uid)
-                        } else {
-                            // Lobideysem → odadan çık
-                            let wasHost = isHost
-                            isLeaving = true
-                            await viewModel.leave(code: code, uid: uid)
-                            if wasHost {
-                                showToast(L("lobby.deleted"))
-                                try? await Task.sleep(for: .seconds(1.3))
-                            }
-                            dismiss()
-                        }
+                    if isPlaying {
+                        // Oyundaysam → sadece lobiye dön (oda silinmez)
+                        Task { await viewModel.exitToLobby(code: code, uid: uid) }
+                    } else {
+                        // Lobideysem → odadan çık. Fire-and-forget → anında dismiss.
+                        isLeaving = true
+                        viewModel.leave(code: code, uid: uid)
+                        dismiss()
                     }
                 } label: {
                     Image(systemName: "chevron.left")
@@ -206,11 +199,15 @@ struct LobbyView: View {
                     .padding(.bottom, Theme.Spacing.sm)
                 }
 
-                Label(isHost ? L("lobby.info_host") : L("lobby.info_guest"),
-                      systemImage: "info.circle")
-                    .font(.caption2)
-                    .foregroundStyle(Color.textSecondary.opacity(0.6))
-                    .padding(.bottom, Theme.Spacing.sm)
+                VStack(spacing: 4) {
+                    Label(isHost ? L("lobby.info_host") : L("lobby.info_guest"),
+                          systemImage: "info.circle")
+                    // Odaların TTL ile otomatik silindiğini kullanıcıya bildir
+                    Label(L("lobby.info_ttl"), systemImage: "clock")
+                }
+                .font(.caption2)
+                .foregroundStyle(Color.textSecondary.opacity(0.6))
+                .padding(.bottom, Theme.Spacing.sm)
             }
             .padding()
         }

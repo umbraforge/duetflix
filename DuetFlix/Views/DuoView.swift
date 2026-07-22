@@ -53,7 +53,7 @@ struct DuoView: View {
 
                     // Oda kurma
                     Button {
-                        Task { await createRoom() }
+                        createRoom()
                     } label: {
                         Text(L("duo.create_room"))
                             .font(.headline)
@@ -122,21 +122,14 @@ struct DuoView: View {
         .tint(.ember)
     }
 
-    // Oda kur -> kodu al -> lobiye geç
-    private func createRoom() async {
-        guard !isBusy else { return }               // zaten işlemdeyse tekrar başlatma
+    // Oda kur -> kodu al -> lobiye geç. Yazım fire-and-forget olduğu için anında geçer
+    // (sunucu onayı beklenmez; kod lokal üretilir). Bir join sürerken buton zaten disabled.
+    private func createRoom() {
         focusedField = nil                          // klavyeyi kapat
         let name = NameGuard.trimmed(myName)
         guard !name.isEmpty else { showToast(L("duo.err.name_first")); return }
         guard NameGuard.isClean(name) else { showToast(L("duo.err.name_invalid")); return }
-        isBusy = true
-        defer { isBusy = false }                    // fonksiyon biterken kilidi aç
-        do {
-            let code = try await roomService.createRoom(hostID: uid, hostName: name)
-            activeCode = code
-        } catch {
-            showToast(L("duo.err.create"))
-        }
+        activeCode = roomService.createRoom(hostID: uid, hostName: name)
     }
 
     // Odaya katıl -> lobiye geç
@@ -148,20 +141,17 @@ struct DuoView: View {
         guard NameGuard.isClean(name) else { showToast(L("duo.err.name_invalid")); return }
         let code = joinCode.trimmingCharacters(in: .whitespaces)
         guard !code.isEmpty else { showToast(L("duo.err.code_first")); return }
-        isBusy = true
-        defer { isBusy = false }
         // App Review demo kodu: gerçek odaya katılmak yerine, simüle partnerli
         // bir demo oda kur ve lobiye geç (tek cihazda Duo eşleşmesini test etmek için).
+        // Kod lokal üretilir → beklemeye gerek yok, anında geç.
         if code == DemoMode.code {
-            do {
-                activeCode = try await roomService.createDemoRoom(hostID: uid, hostName: name)
-            } catch {
-                showToast(L("duo.err.join"))
-            }
+            activeCode = roomService.createDemoRoom(hostID: uid, hostName: name)
             return
         }
+        isBusy = true
+        defer { isBusy = false }
         do {
-            // Oda var mı?
+            // Oda var mı? (kullanıcı kodu → mutlaka doğrulanmalı, bu okuma beklenir)
             guard let room = try await roomService.fetchRoom(code: code) else {
                 showToast(L("duo.err.no_room")); return
             }
@@ -170,7 +160,8 @@ struct DuoView: View {
             guard !taken else {
                 showToast(L("duo.err.name_taken")); return
             }
-            try await roomService.joinRoom(code: code, uid: uid, name: name)
+            // Yazım fire-and-forget → doğrulama geçtiği an anında lobiye geç.
+            roomService.joinRoom(code: code, uid: uid, name: name)
             activeCode = code
         } catch {
             showToast(L("duo.err.join"))

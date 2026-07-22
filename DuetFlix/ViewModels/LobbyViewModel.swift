@@ -73,21 +73,17 @@ final class LobbyViewModel {
         listener = nil
     }
     
-    func leave(code: String, uid: String) async {
-        let ref = db.collection("rooms").document(code)
-        do {
-            let isHost = room?.hostID == uid  // host muyum?
-            let isLast = (room?.members.count ?? 0) <= 1 // lobbydeki son kişi miyim?
-            
-            if isHost || isLast {
-                try await roomService.deleteRoom(code: code) // oda + deste alt-dokümanı
-            } else {
-                try await ref.updateData([ // sadece beni çıkar (map'ten uid anahtarını sil)
-                    "members.\(uid)": FieldValue.delete()
-                ])
-            }
-        } catch {
-            // Ayrılma başarısız olsa da ekrandan çıkılıyor sessizce yoksay
+    // Odadan çık. Fire-and-forget: sunucu onayı beklenmez → kullanıcı ekrandan anında
+    // çıkar, silme/güncelleme arka planda sync olur (uygulama kapansa bile kuyrukta kalır).
+    func leave(code: String, uid: String) {
+        let isHost = room?.hostID == uid  // host muyum?
+        let isLast = (room?.members.count ?? 0) <= 1 // lobbydeki son kişi miyim?
+        if isHost || isLast {
+            roomService.deleteRoom(code: code) // oda + deste dokümanı
+        } else {
+            db.collection("rooms").document(code).updateData([ // sadece beni çıkar
+                "members.\(uid)": FieldValue.delete()
+            ])
         }
     }
 
