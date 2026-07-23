@@ -9,6 +9,8 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(StoreService.self) private var store
+    @State private var showPaywall = false
     private let loc = LocalizationManager.shared
 
     // Bundledan sürüm + build numarası
@@ -27,6 +29,7 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(spacing: Theme.Spacing.lg) {
                         header
+                        plusCard
                         languageCard
                         aboutCard
                         Spacer(minLength: Theme.Spacing.lg)
@@ -40,8 +43,46 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle(L("tab.profile"))
+            .sheet(isPresented: $showPaywall) {
+                PaywallView().environment(store)   // sheet'e store'u açıkça ver
+            }
         }
         .tint(.ember)
+    }
+
+    // DuetFlix Plus giriş noktası: aktifse rozet, değilse paywall açan kart
+    private var plusCard: some View {
+        Group {
+            if store.isPlus {
+                card {
+                    Label(L("profile.plus_active"), systemImage: "checkmark.seal.fill")
+                        .font(.headline)
+                        .foregroundStyle(Color.ember)
+                }
+            } else {
+                Button { showPaywall = true } label: {
+                    card {
+                        HStack(spacing: Theme.Spacing.md) {
+                            Image(systemName: "sparkles")
+                                .font(.title2)
+                                .foregroundStyle(Color.ember)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L("profile.get_plus"))
+                                    .font(.headline)
+                                    .foregroundStyle(Color.textPrimary)
+                                Text(L("profile.plus_tagline"))
+                                    .font(.caption)
+                                    .foregroundStyle(Color.textSecondary)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .foregroundStyle(Color.textSecondary)
+                        }
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
     // Header (logo + isim + stüdyo)

@@ -15,6 +15,7 @@ enum AppMode {
 struct RootView: View {
     @State private var mode: AppMode? = nil
     @State private var auth = AuthService() // giriş için kullanılan service
+    @State private var store = StoreService()   // premium (DuetFlix Plus) — tüm ekranlara environment ile
     @State private var pendingJoinCode: String?   // deep link'ten gelen oda kodu
 
     var body: some View {
@@ -36,8 +37,13 @@ struct RootView: View {
                 }
             }
         }
+        .environment(store)   // Plus yetkisi + paywall her ekrandan erişilebilir
         .task {
             await auth.signInIfNeeded() // service üzerinden giriş veya hazır user id çek (anonim)
+        }
+        .task {
+            await store.loadProduct()        // ürünü yükle
+            await store.refreshEntitlement() // açılışta Plus sahipliğini kontrol et
         }
         // duetflix://join?code=xxxxxx linki gelince Duo'ya geç + kodu doldur
         .onOpenURL { url in

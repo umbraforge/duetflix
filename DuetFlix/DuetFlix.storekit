@@ -1,0 +1,45 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "17D5E089-8191-4E1B-A3F0-8CC5C8FB0DFD",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "2.99",
+      "familyShareable" : false,
+      "internalID" : "B459AAB8-B817-4A53-8CAC-C7B6803D922F",
+      "localizations" : [
+        {
+          "description" : "Unlock unlimited streaming filters and 3-4 person group rooms. One-time purchase, yours forever.",
+          "displayName" : "DuetFlix Plus",
+          "locale" : "en_US"
+        }
+      ],
+      "productID" : "com.batuhanaydin.DuetFlix.plus",
+      "referenceName" : "DuetFlix Plus",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

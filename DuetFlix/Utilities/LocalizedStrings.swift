@@ -23,6 +23,8 @@ enum LocalizedStrings {
         .merging(swipe) { a, _ in a }
         .merging(matches) { a, _ in a }
         .merging(profile) { a, _ in a }
+        .merging(paywall) { a, _ in a }
+        .merging(filter) { a, _ in a }
         .merging(a11y) { a, _ in a }
 
     // Common
@@ -160,6 +162,46 @@ enum LocalizedStrings {
         "profile.data_source": ("Film verileri", "Film data"),
         "profile.tmdb_attr":   ("Bu uygulama TMDB API'sini kullanır ancak TMDB tarafından onaylanmış ya da sertifikalandırılmış değildir.",
                                 "This product uses the TMDB API but is not endorsed or certified by TMDB."),
+    ]
+
+    // Paywall / premium (DuetFlix Plus)
+    private static let paywall: [String: LocPair] = [
+        "paywall.title":          ("DuetFlix Plus", "DuetFlix Plus"),
+        "paywall.subtitle":       ("Tek seferlik satın alma, ömür boyu senin.", "One-time purchase, yours forever."),
+        "paywall.feature_filter": ("Servislerine göre sınırsız filtrele", "Filter by your streaming services, unlimited"),
+        "paywall.feature_group":  ("3-4 kişilik grup odaları kur", "Host group rooms for 3-4 people"),
+        "paywall.feature_support":("Bağımsız bir geliştiriciyi destekle", "Support an indie developer"),
+        "paywall.buy":            ("Plus'ı Aç — %@", "Unlock Plus — %@"),
+        "paywall.buy_plain":      ("Plus'ı Aç", "Unlock Plus"),
+        "paywall.active":         ("Plus aktif", "Plus active"),
+        "paywall.active_note":    ("Tüm premium özellikler açık. Teşekkürler!", "All premium features unlocked. Thank you!"),
+        "paywall.restore":        ("Satın alımları geri yükle", "Restore purchases"),
+        "paywall.once":           ("Abonelik yok · tek seferlik", "No subscription · one-time"),
+        "paywall.unavailable":    ("Şu an kullanılamıyor, sonra tekrar dene", "Currently unavailable, try again later"),
+        "paywall.terms":          ("Kullanım Şartları", "Terms of Use"),
+        "paywall.privacy":        ("Gizlilik", "Privacy"),
+        // Profil giriş noktası
+        "profile.get_plus":       ("DuetFlix Plus'a geç", "Get DuetFlix Plus"),
+        "profile.plus_tagline":   ("Filtreler + grup odaları", "Filters + group rooms"),
+        "profile.plus_active":    ("DuetFlix Plus ✓", "DuetFlix Plus ✓"),
+    ]
+
+    // Keşfet filtresi (Plus)
+    private static let filter: [String: LocPair] = [
+        "filter.title":         ("Filtrele", "Filter"),
+        "filter.genre":         ("Tür", "Genre"),
+        "filter.platform":      ("Platform", "Platform"),
+        "filter.runtime":       ("Süre", "Runtime"),
+        "filter.sort":          ("Sırala", "Sort"),
+        "filter.apply":         ("Filtreyi uygula", "Apply filter"),
+        "filter.reset":         ("Sıfırla", "Reset"),
+        "filter.sort.popular":  ("Popüler", "Popular"),
+        "filter.sort.top_rated":("Puana göre", "Top rated"),
+        "filter.sort.newest":   ("En yeni", "Newest"),
+        "filter.free_left":     ("%d bedava filtreleme hakkın kaldı", "%d free filters left"),
+        "filter.free_over":     ("Sınırsız filtre için DuetFlix Plus", "Get DuetFlix Plus for unlimited filters"),
+        "filter.idle_hint":     ("Filtre seç ve uygula", "Pick filters and apply"),
+        "filter.empty":         ("Bu filtrelerle film bulunamadı", "No movies match these filters"),
     ]
 
     // Accessibility (VoiceOver) — ikon-only kontroller

@@ -8,7 +8,9 @@
 import SwiftUI
 
 struct SearchView: View {
+    @Environment(StoreService.self) private var store
     @State private var viewModel = SearchViewModel()
+    @State private var showFilter = false
 
     var body: some View {
         NavigationStack {
@@ -49,6 +51,17 @@ struct SearchView: View {
             }
             .navigationTitle(L("tab.discover"))
             .searchable(text: $viewModel.query, prompt: L("search.empty.title"))
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showFilter = true } label: {
+                        Image(systemName: "line.3.horizontal.decrease.circle")
+                    }
+                    .accessibilityLabel(L("filter.title"))
+                }
+            }
+            .sheet(isPresented: $showFilter) {
+                FilterView().environment(store)   // sheet'e store'u açıkça ver
+            }
         }
         .tint(.ember)
     }
