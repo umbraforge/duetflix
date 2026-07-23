@@ -60,8 +60,22 @@ enum LocalizedStrings {
 
     // Home
     private static let home: [String: LocPair] = [
-        "home.popular": ("Popüler", "Popular"),
-        "home.mode":    ("Mod", "Mode"),
+        "home.popular":       ("Popüler", "Popular"),
+        "home.mode":          ("Mod", "Mode"),
+        "home.surprise":      ("Zar at", "Roll the dice"),
+        "home.surprise_sub":  ("Karar veremedin mi?", "Can't decide?"),
+        // Mod / ruh hali satırları
+        "mood.short":         ("Kısa ve tatlı", "Short & sweet"),
+        "mood.masterpieces":  ("Şaheserler", "Masterpieces"),
+        "mood.brainoff":      ("Beyin kapatmalık", "Switch your brain off"),
+        "mood.thrill":        ("Gerilim dozu", "A dose of thrill"),
+        "mood.together":      ("İkiniz için", "For the two of you"),
+        "mood.family":        ("Ailecek", "Family time"),
+        "mood.long":          ("Uzun bir gece", "A long night in"),
+        // Zamana duyarlı satır (güne göre)
+        "mood.friday":        ("Cuma gecesi için", "For Friday night"),
+        "mood.sunday":        ("Pazar rahatlığı", "Sunday chill"),
+        "mood.weekday":       ("Bu akşam için", "For tonight"),
     ]
 
     // Detail

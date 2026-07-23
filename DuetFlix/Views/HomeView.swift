@@ -10,6 +10,7 @@ import Kingfisher
 
 struct HomeView: View {
     @State private var viewModel = HomeViewModel()
+    @State private var surpriseID: Int?          // "Zar at" ile seçilen film → detay
     var onChangeMode: () -> Void = {}   // mod değiştir
 
     var body: some View {
@@ -49,10 +50,12 @@ struct HomeView: View {
                         case .loaded:
                             ScrollView {
                                 VStack(alignment: .leading, spacing: 16) {
-                                    FeaturedCarousel(movies: Array(viewModel.movies.prefix(5)))   // ilk 5 film öne çıkan
+                                    surpriseButton   //  Zar at — karar yardımcısı
+
+                                    FeaturedCarousel(movies: Array(viewModel.movies.prefix(10)))   // ilk 10 film öne çıkan
 
                                     MovieRow(title: L("home.popular"),
-                                             movies: Array(viewModel.movies.dropFirst(5)),
+                                             movies: Array(viewModel.movies.dropFirst(10)),
                                              onReachEnd: { Task { await viewModel.loadMore() } })
 
                                     if viewModel.isLoadingMore {
@@ -60,11 +63,17 @@ struct HomeView: View {
                                             .frame(maxWidth: .infinity)
                                             .padding(.bottom)
                                     }
+
+                                    // Mod / ruh hali satırları
+                                    ForEach(viewModel.rows) { row in
+                                        MovieRow(title: row.title, movies: row.movies)
+                                    }
                                 }
+                                .padding(.bottom)
                             }
                         case .error(let message):
                             ErrorView(message: message) {
-                                Task { await viewModel.loadPopular() }
+                                Task { await viewModel.loadHome() }
                             }
                         }
                     }
@@ -72,12 +81,45 @@ struct HomeView: View {
                         // Sadece ilk açılışta yükle geri gelince tekrar yükleyip
                         // kaydırma konumunu sıfırlama
                         if viewModel.movies.isEmpty {
-                            await viewModel.loadPopular()
+                            await viewModel.loadHome()
                         }
                     }
                 }
             }
+            .navigationDestination(item: $surpriseID) { id in
+                DetailView(movieID: id)
+            }
         }
+    }
+
+    // 🎲 Zar at — yüklenen havuzdan rastgele film seç → detay ekranı
+    private var surpriseButton: some View {
+        Button {
+            surpriseID = viewModel.surprisePick()?.id
+        } label: {
+            HStack(spacing: Theme.Spacing.md) {
+                Image(systemName: "die.face.5.fill")
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L("home.surprise")).font(.headline)
+                    Text(L("home.surprise_sub"))
+                        .font(.caption)
+                        .foregroundStyle(Color.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundStyle(Color.textSecondary)
+            }
+            .foregroundStyle(Color.ember)
+            .padding(Theme.Spacing.md)
+            .frame(maxWidth: .infinity)
+            .background(Color.ember.opacity(0.12),
+                        in: RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous)
+                .stroke(Color.ember.opacity(0.3), lineWidth: 1))
+            .padding(.horizontal)
+        }
+        .buttonStyle(.plain)
     }
 }
 

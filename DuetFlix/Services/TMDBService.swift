@@ -7,12 +7,13 @@
 
 import Foundation
 
-// sözleşme
-protocol TMDBService {
+// sözleşme (Sendable → tür satırlarını paralel/task group içinde güvenle çekebiliriz)
+protocol TMDBService: Sendable {
     func fetchPopular(page: Int) async throws -> [Movie] // zarfı açıp sadece film listesini döndürüyoruz
     func fetchDetail(id: Int) async throws -> MovieDetail // film id'sini alır ve detayını getirir
     func fetchSearch(query: String) async throws -> [Movie] // aramalarda kullanılacak fonksiyon
     func fetchDiscover(filter: MovieFilter, page: Int) async throws -> [Movie] // filtreli keşif
+    func fetchMood(_ mood: HomeMood, page: Int) async throws -> [Movie]        // ana ekran mod satırı
 }
 
 // Service, URL kurar client'e verir ve zarfı açar
@@ -84,6 +85,32 @@ struct TMDBServiceLive : TMDBService {
             items.append(URLQueryItem(name: "with_runtime.gte", value: String(runtime.bounds.min)))
             items.append(URLQueryItem(name: "with_runtime.lte", value: String(runtime.bounds.max)))
         }
+        components.queryItems = items
+
+        guard let url = components.url else { throw APIError.invalidURL }
+        let response: MovieResponse = try await client.fetch(url: url)
+        return response.results
+    }
+
+    // Ana ekran mod satırı (/discover). Mod tanımındaki tür/süre/puan → parametreler.
+    func fetchMood(_ mood: HomeMood, page: Int = 1) async throws -> [Movie] {
+        guard var components = URLComponents(string: "https://api.themoviedb.org/3/discover/movie")
+        else { throw APIError.invalidURL }
+
+        var items: [URLQueryItem] = [
+            URLQueryItem(name: "language", value: "en-US"),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "sort_by", value: mood.sort.apiValue),
+            URLQueryItem(name: "include_adult", value: "false"),
+            URLQueryItem(name: "vote_count.gte", value: mood.sort == .topRated ? "300" : "80"),
+        ]
+        if !mood.genres.isEmpty {
+            items.append(URLQueryItem(name: "with_genres",
+                                      value: mood.genres.map(String.init).joined(separator: "|")))
+        }
+        if let mn = mood.runtimeMin { items.append(URLQueryItem(name: "with_runtime.gte", value: String(mn))) }
+        if let mx = mood.runtimeMax { items.append(URLQueryItem(name: "with_runtime.lte", value: String(mx))) }
+        if let r  = mood.minRating  { items.append(URLQueryItem(name: "vote_average.gte", value: String(r))) }
         components.queryItems = items
 
         guard let url = components.url else { throw APIError.invalidURL }
