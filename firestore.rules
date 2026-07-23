@@ -40,6 +40,16 @@ service cloud.firestore {
       // Silme: odayı yalnızca üyeler silebilir (host kapatır / son kişi çıkar —
       // her ikisi de o an üyedir)
       allow delete: if isMember();
+
+      // GERİYE UYUMLULUK: yayındaki eski binary (build 3) desteyi hâlâ bu alt-koleksiyona
+      // (rooms/{code}/state/deck) yazıyor. Yeni kod üst seviye decks/{code} kullanıyor ama
+      // eski sürümler kullanımdan kalkana dek bu kural kalmalı — yoksa canlı app'te
+      // "deste gelmiyor / oyun başlamıyor". Yalnızca odanın üyeleri.
+      match /state/{docId} {
+        allow read, write: if signedIn()
+          && request.auth.uid in
+             get(/databases/$(database)/documents/rooms/$(code)).data.members;
+      }
     }
 
     // Deste (üst seviye decks/{code}): yalnızca ilgili odanın üyeleri okuyup yazar.
