@@ -10,6 +10,7 @@
 		47A2C0B22FF5878900F30F8E /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0B12FF5878900F30F8E /* Kingfisher */; };
 		47A2C0E22FF826C700F30F8E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0E12FF826C700F30F8E /* FirebaseAuth */; };
 		47A2C0E42FF826C700F30F8E /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 47A2C0E32FF826C700F30F8E /* FirebaseFirestore */; };
+		47BC70343092542000E31CCF /* GoogleMobileAds in Frameworks */ = {isa = PBXBuildFile; productRef = 47BC70333092542000E31CCF /* GoogleMobileAds */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +32,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				47BC70343092542000E31CCF /* GoogleMobileAds in Frameworks */,
 				47A2C0B22FF5878900F30F8E /* Kingfisher in Frameworks */,
 				47A2C0E22FF826C700F30F8E /* FirebaseAuth in Frameworks */,
 				47A2C0E42FF826C700F30F8E /* FirebaseFirestore in Frameworks */,
@@ -89,6 +91,7 @@
 				47A2C0B12FF5878900F30F8E /* Kingfisher */,
 				47A2C0E12FF826C700F30F8E /* FirebaseAuth */,
 				47A2C0E32FF826C700F30F8E /* FirebaseFirestore */,
+				47BC70333092542000E31CCF /* GoogleMobileAds */,
 			);
 			productName = DuetFlix;
 			productReference = 473BE6F32FF4575E00FC2301 /* DuetFlix.app */;
@@ -121,6 +124,7 @@
 			packageReferences = (
 				47A2C0B02FF5878900F30F8E /* XCRemoteSwiftPackageReference "Kingfisher" */,
 				47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				47BC70323092542000E31CCF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 473BE6F42FF4575E00FC2301 /* Products */;
@@ -392,6 +396,14 @@
 				minimumVersion = 12.15.0;
 			};
 		};
+		47BC70323092542000E31CCF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googleads/swift-package-manager-google-mobile-ads";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.11.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -409,6 +421,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 47A2C0E02FF826C700F30F8E /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseFirestore;
+		};
+		47BC70333092542000E31CCF /* GoogleMobileAds */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 47BC70323092542000E31CCF /* XCRemoteSwiftPackageReference "swift-package-manager-google-mobile-ads" */;
+			productName = GoogleMobileAds;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -2,7 +2,7 @@
 //  MovieFilter.swift
 //  DuetFlix
 //
-//  Keşfet filtresi (Plus özelliği): tür + platform + süre aralığı + sıralama.
+//  Keşfet filtresi: tür + platform + süre aralığı + puan + sıralama.
 //  TMDB /discover/movie parametrelerine çevrilir.
 //
 
@@ -23,6 +23,14 @@ enum RuntimeRange: String, CaseIterable, Identifiable {
         }
     }
     var label: String { "\(bounds.min)-\(bounds.max) \(L("detail.min"))" }
+}
+
+// Minimum puan eşiği (vote_average.gte). 6+ / 7+ / 8+
+enum MinRating: Int, CaseIterable, Identifiable {
+    case r6 = 6, r7 = 7, r8 = 8
+    var id: Int { rawValue }
+    var value: Double { Double(rawValue) }
+    var label: String { "\(rawValue)+" }
 }
 
 // Sıralama seçenekleri
@@ -90,14 +98,48 @@ struct FilterProvider: Identifiable {
 }
 
 // Aktif filtre durumu
-struct MovieFilter {
+// Hashable: "bu filtre için zaten ödendi mi" kontrolü için (bkz. FilterCredits)
+struct MovieFilter: Hashable {
     var genres: Set<Int> = []
     var providers: Set<Int> = []
-    var runtime: RuntimeRange? = nil
+    var runtimes: Set<RuntimeRange> = []   // birden fazla süre aralığı seçilebilir
+    var minRating: MinRating? = nil        // minimum puan
     var sort: MovieSort = .popular
 
     // Hiçbir şey seçilmemiş mi? (varsayılan popüler sıralama sayılmaz)
     var isDefault: Bool {
-        genres.isEmpty && providers.isEmpty && runtime == nil && sort == .popular
+        genres.isEmpty && providers.isEmpty && runtimes.isEmpty && minRating == nil && sort == .popular
+    }
+}
+
+// Çözülmüş /discover parametreleri — Firestore'a (odaya) yazılıp refill'de yeniden
+// kullanılabilir (deste bitince aynı filtreyle devam etsin). Bölge deste kurulurken
+// (host tarafında) sabitlenir ki refill'i kim tetiklerse tetiklesin tutarlı kalsın.
+struct DiscoverParams: Codable, Sendable {
+    var genres: [Int] = []
+    var providers: [Int] = []
+    var region: String? = nil
+    var runtimeMin: Int? = nil
+    var runtimeMax: Int? = nil
+    var minRating: Double? = nil
+    var sortBy: String = "popularity.desc"
+}
+
+extension MovieFilter {
+    // Bu filtreyi çözülmüş /discover parametrelerine çevir.
+    var discoverParams: DiscoverParams {
+        var p = DiscoverParams()
+        p.genres = Array(genres)
+        p.providers = Array(providers)
+        if !providers.isEmpty {
+            p.region = LocalizationManager.shared.language == .tr ? "TR" : "US"
+        }
+        if !runtimes.isEmpty {
+            p.runtimeMin = runtimes.map(\.bounds.min).min()
+            p.runtimeMax = runtimes.map(\.bounds.max).max()
+        }
+        p.minRating = minRating?.value
+        p.sortBy = sort.apiValue
+        return p
     }
 }

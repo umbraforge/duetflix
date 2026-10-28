@@ -20,5 +20,6 @@ struct Room: Codable, Identifiable {
     var likes: [String: [Int]]?    // uid → beğenilen film id'leri (eşleşme için)
     var rejected: [Int]?           // eşleşme listesinden çıkarılan film idleri
     var expiresAt: Date?           // TTL: bu zamandan sonra Firestore odayı otomatik siler
+    var deckFilter: DiscoverParams?   // Deste filtresi (varsa) — refill aynı filtreyle devam etsin
 }
 

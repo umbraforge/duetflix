@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct SearchView: View {
-    @Environment(StoreService.self) private var store
+    @Environment(AdService.self) private var ads
+    @Environment(FilterCredits.self) private var credits
     @State private var viewModel = SearchViewModel()
     @State private var showFilter = false
 
@@ -60,7 +61,8 @@ struct SearchView: View {
                 }
             }
             .sheet(isPresented: $showFilter) {
-                FilterView().environment(store)   // sheet'e store'u açıkça ver
+                // sheet environment'ı miras almaz → reklam + hak nesnelerini açıkça ver
+                FilterView().environment(ads).environment(credits)
             }
         }
         .tint(.ember)
@@ -69,5 +71,7 @@ struct SearchView: View {
 
 #Preview {
     SearchView()
+        .environment(AdService())
+        .environment(FilterCredits())
         .preferredColorScheme(.dark)
 }

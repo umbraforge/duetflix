@@ -12,8 +12,9 @@ protocol TMDBService: Sendable {
     func fetchPopular(page: Int) async throws -> [Movie] // zarfı açıp sadece film listesini döndürüyoruz
     func fetchDetail(id: Int) async throws -> MovieDetail // film id'sini alır ve detayını getirir
     func fetchSearch(query: String) async throws -> [Movie] // aramalarda kullanılacak fonksiyon
-    func fetchDiscover(filter: MovieFilter, page: Int) async throws -> [Movie] // filtreli keşif
-    func fetchMood(_ mood: HomeMood, page: Int) async throws -> [Movie]        // ana ekran mod satırı
+    func fetchDiscover(filter: MovieFilter, page: Int) async throws -> [Movie]      // filtreli keşif
+    func fetchDiscover(params: DiscoverParams, page: Int) async throws -> [Movie]   // çözülmüş parametrelerle (refill)
+    func fetchMood(_ mood: HomeMood, page: Int) async throws -> [Movie]             // ana ekran mod satırı
 }
 
 // Service, URL kurar client'e verir ve zarfı açar
@@ -60,31 +61,34 @@ struct TMDBServiceLive : TMDBService {
     // Başlık/poster kuralı gereği language=en-US (orijinal). Platform seçilirse
     // watch_region app diline göre (TR/US).
     func fetchDiscover(filter: MovieFilter, page: Int = 1) async throws -> [Movie] {
+        try await fetchDiscover(params: filter.discoverParams, page: page)
+    }
+
+    // Çözülmüş parametrelerle /discover — hem filtre hem refill (odaya kayıtlı filtre) buradan geçer.
+    func fetchDiscover(params: DiscoverParams, page: Int = 1) async throws -> [Movie] {
         guard var components = URLComponents(string: "https://api.themoviedb.org/3/discover/movie")
         else { throw APIError.invalidURL }
 
-        let region = LocalizationManager.shared.language == .tr ? "TR" : "US"
         var items: [URLQueryItem] = [
             URLQueryItem(name: "language", value: "en-US"),
             URLQueryItem(name: "page", value: String(page)),
-            URLQueryItem(name: "sort_by", value: filter.sort.apiValue),
+            URLQueryItem(name: "sort_by", value: params.sortBy),
             URLQueryItem(name: "include_adult", value: "false"),
             // Puana göre sıralamada bilinmeyen/az oylu filmler tepeye çıkmasın
-            URLQueryItem(name: "vote_count.gte", value: filter.sort == .topRated ? "300" : "50"),
+            URLQueryItem(name: "vote_count.gte", value: params.sortBy == "vote_average.desc" ? "300" : "50"),
         ]
-        if !filter.genres.isEmpty {   // | = "veya" (herhangi biri)
+        if !params.genres.isEmpty {   // | = "veya" (herhangi biri)
             items.append(URLQueryItem(name: "with_genres",
-                                      value: filter.genres.map(String.init).joined(separator: "|")))
+                                      value: params.genres.map(String.init).joined(separator: "|")))
         }
-        if !filter.providers.isEmpty {
+        if !params.providers.isEmpty {
             items.append(URLQueryItem(name: "with_watch_providers",
-                                      value: filter.providers.map(String.init).joined(separator: "|")))
-            items.append(URLQueryItem(name: "watch_region", value: region))
+                                      value: params.providers.map(String.init).joined(separator: "|")))
+            items.append(URLQueryItem(name: "watch_region", value: params.region ?? "US"))
         }
-        if let runtime = filter.runtime {
-            items.append(URLQueryItem(name: "with_runtime.gte", value: String(runtime.bounds.min)))
-            items.append(URLQueryItem(name: "with_runtime.lte", value: String(runtime.bounds.max)))
-        }
+        if let mn = params.runtimeMin { items.append(URLQueryItem(name: "with_runtime.gte", value: String(mn))) }
+        if let mx = params.runtimeMax { items.append(URLQueryItem(name: "with_runtime.lte", value: String(mx))) }
+        if let r  = params.minRating  { items.append(URLQueryItem(name: "vote_average.gte", value: String(r))) }
         components.queryItems = items
 
         guard let url = components.url else { throw APIError.invalidURL }

@@ -2,7 +2,7 @@
 //  FilterViewModel.swift
 //  DuetFlix
 //
-//  Keşfet filtresi durumu + sonuçlar + "2 bedava kullanım sonra Plus" kapısı.
+//  Keşfet filtresi durumu + sonuçlar + "hak bitince ödüllü reklam" kapısı.
 //
 
 import Foundation
@@ -15,24 +15,20 @@ final class FilterViewModel {
     var filter = MovieFilter()
     private(set) var results: [Movie] = []
     private(set) var state: State = .idle
-    var showPaywall = false
+    var showReward = false   // hak bitti → view ödüllü reklam ekranını açsın
 
     private let tmdb: TMDBService = TMDBServiceLive()
 
-    // Plus olmayan kullanıcı için toplam bedava filtreleme hakkı
-    static let freeLimit = 2
-    private let usedKey = "filter_free_uses_used"
-    var freeUsesLeft: Int {
-        max(0, Self.freeLimit - UserDefaults.standard.integer(forKey: usedKey))
-    }
-
-    // Filtreyi uygula. Plus değilse ve hak bittiyse paywall aç; başarılı ve Plus değilse hakkı düş.
-    // (Başarısız istek hak yakmaz.)
-    func apply(isPlus: Bool) async {
-        // Boş filtre (yalnızca popüler) bedava hak yakmaz — sadece gerçek bir filtre sayılır.
+    // Filtreyi uygula. Hak yoksa ödül ekranını aç; başarılı olursa bir hak harca.
+    // Hak YAKMAYAN durumlar: boş filtre (yalnızca popüler), başarısız istek ve
+    // bu açılışta zaten ödenmiş aynı filtrenin tekrarı.
+    func apply(credits: FilterCredits) async {
         let usesFeature = !filter.isDefault
-        if usesFeature && !isPlus && freeUsesLeft == 0 {
-            showPaywall = true
+        let alreadyPaid = credits.hasPaid(for: filter)
+        let mustPay = usesFeature && !alreadyPaid
+
+        if mustPay && credits.isEmpty {
+            showReward = true
             return
         }
         state = .loading
@@ -40,9 +36,9 @@ final class FilterViewModel {
             let movies = try await tmdb.fetchDiscover(filter: filter, page: 1)
             results = movies
             state = movies.isEmpty ? .empty : .loaded
-            if usesFeature && !isPlus {
-                let used = UserDefaults.standard.integer(forKey: usedKey)
-                UserDefaults.standard.set(used + 1, forKey: usedKey)
+            if mustPay {
+                credits.spend()
+                credits.recordPaid(filter)
             }
         } catch {
             state = .error
@@ -57,7 +53,10 @@ final class FilterViewModel {
         if filter.providers.contains(id) { filter.providers.remove(id) } else { filter.providers.insert(id) }
     }
     func toggleRuntime(_ range: RuntimeRange) {
-        filter.runtime = (filter.runtime == range) ? nil : range
+        if filter.runtimes.contains(range) { filter.runtimes.remove(range) } else { filter.runtimes.insert(range) }
+    }
+    func toggleRating(_ rating: MinRating) {   // tekli: aynısına basınca kapat
+        filter.minRating = (filter.minRating == rating) ? nil : rating
     }
 
     func reset() {

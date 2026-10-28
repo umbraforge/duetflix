@@ -77,7 +77,11 @@ final class RoomService {
     // beklendi; bu YAZIMI ayrıca beklemeye gerek yok → kullanıcı anında lobiye geçer.
     func joinRoom(code: String, uid: String, name: String) {
         db.collection("rooms").document(code).updateData([
-            "members.\(uid)": name
+            "members.\(uid)": name,
+            // Katılım da bir aktivitedir → TTL'i tazele. Ayrıca yayındaki eski sürüm
+            // (build 3) odaları expiresAt'siz kuruyor; TTL alanı olmayan dökümanı
+            // Firestore hiç silmez. Yeni sürümden biri katılınca oda TTL'e kavuşur.
+            "expiresAt": Self.expiry()
         ])
     }
 
@@ -88,8 +92,10 @@ final class RoomService {
         return try snapshot.data(as: Room.self)
     }
     
-    // Host oyunu başlatır desteyi AYRI dokümana yaz, sonra ana odayı güncelle
-    func startGame(code: String, movies: [Movie], page: Int, players: [String]) async throws {
+    // Host oyunu başlatır desteyi AYRI dokümana yaz, sonra ana odayı güncelle.
+    // filterParams: deste filtresi (varsa) — refill’de tekrar kullanılmak üzere odaya yazılır.
+    func startGame(code: String, movies: [Movie], page: Int, players: [String],
+                   filterParams: DiscoverParams?) async throws {
         let deckData = movies.map(Self.deckEntry)
         let ref = db.collection("rooms").document(code)
         // 1) Büyük desteyi ÜST SEVİYE decks/{code} dokümanına yaz (her swipe'ta
@@ -99,13 +105,26 @@ final class RoomService {
             "expiresAt": Self.expiry()
         ])
         // 2) Ana dokümanın küçük alanları — status/playing en son ki karşı taraf
-        //    swipinge geçtiğinde deste dokümanı zaten hazır olsun
-        try await ref.updateData([
+        //    swipinge geçtiğinde deste dokümanı zaten hazır olsun.
+        //    deckFilter: filtreli deste ise yaz, değilse eski değeri temizle.
+        var roomUpdate: [String: Any] = [
             "status": "swiping",
             "deckPage": page,
             "playing": players,
             "expiresAt": Self.expiry()
-        ])
+        ]
+        roomUpdate["deckFilter"] = filterParams.map(Self.filterDict) ?? FieldValue.delete()
+        try await ref.updateData(roomUpdate)
+    }
+
+    // DiscoverParams → Firestore mapi (Room.deckFilter olarak Codable geri okunur)
+    private static func filterDict(_ p: DiscoverParams) -> [String: Any] {
+        var d: [String: Any] = ["genres": p.genres, "providers": p.providers, "sortBy": p.sortBy]
+        if let r = p.region      { d["region"] = r }
+        if let mn = p.runtimeMin { d["runtimeMin"] = mn }
+        if let mx = p.runtimeMax { d["runtimeMax"] = mx }
+        if let mr = p.minRating  { d["minRating"] = mr }
+        return d
     }
 
     // Demo modu: simüle partner destedeki TÜM filmleri beğenmiş say. Böylece

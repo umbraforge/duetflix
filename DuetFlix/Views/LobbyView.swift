@@ -14,6 +14,10 @@ struct LobbyView: View {
     @State private var viewModel = LobbyViewModel()
     @State private var toastMessage: String?
     @State private var isLeaving = false   // ayrılan/kapatan ben miyim (kendi roomClosed toast'ımı gösterme)
+    @State private var showDeckFilter = false
+    @State private var showReward = false
+    @Environment(AdService.self) private var ads
+    @Environment(FilterCredits.self) private var credits
     @Environment(\.dismiss) private var dismiss
 
     // Bu cihaz host mu?
@@ -62,6 +66,15 @@ struct LobbyView: View {
             if let message { showToastAutoHide(message) }
         }
         .navigationBarBackButtonHidden(true)
+        .sheet(isPresented: $showDeckFilter) {
+            DeckFilterSheet(filter: Binding(
+                get: { viewModel.deckFilter },
+                set: { viewModel.deckFilter = $0 }
+            ))
+        }
+        .sheet(isPresented: $showReward) {
+            RewardView().environment(ads).environment(credits)
+        }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -174,10 +187,48 @@ struct LobbyView: View {
                     }
                     .padding(.bottom, Theme.Spacing.sm)
                 } else if isHost {
+                    // Deste filtresi — serbest açılır; başlatırken bir filtre hakkı yakar
+                    Button {
+                        showDeckFilter = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "line.3.horizontal.decrease.circle")
+                            Text(L("lobby.deck_filter"))
+                            if !viewModel.deckFilter.isDefault {
+                                Circle().fill(Color.ember).frame(width: 7, height: 7)   // aktif
+                            }
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(Color.ember)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 9)
+                        .background(Color.ember.opacity(0.12), in: Capsule())
+                        .overlay(Capsule().stroke(Color.ember.opacity(0.3), lineWidth: 1))
+                    }
+
+                    // Kalan filtre hakkı — sadece filtre seçiliyken anlamlı
+                    if !viewModel.deckFilter.isDefault {
+                        Text(credits.isEmpty
+                             ? L("filter.credits_over")
+                             : Lf("filter.credits_left", credits.balance))
+                            .font(.caption2)
+                            .foregroundStyle(Color.textSecondary)
+                    }
+
                     // Oyunu başlat — sadece host, en az 2 kişi olunca aktif
                     let canStart = (viewModel.room?.members.count ?? 0) >= 2
                     Button {
-                        Task { await viewModel.startGame(code: code) }
+                        Task {
+                            await viewModel.startGame(code: code, credits: credits)
+                            if viewModel.needsReward {   // filtre hakkı bitti → ödüllü reklam
+                                viewModel.needsReward = false
+                                showReward = true
+                            }
+                            if viewModel.noFilterResults {   // filtreye uyan film yok
+                                viewModel.noFilterResults = false
+                                showToastAutoHide(L("lobby.no_filter_results"))
+                            }
+                        }
                     } label: {
                         HStack(spacing: Theme.Spacing.sm) {
                             if viewModel.isStarting {

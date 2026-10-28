@@ -25,7 +25,11 @@ final class LobbyViewModel {
     private let tmdb: TMDBService = TMDBServiceLive()   // film çekmek için
     private let roomService = RoomService()             // desteyi yazmak için
     private(set) var isStarting = false                 // çift tık koruması
-    
+    var deckFilter = MovieFilter()                      // host'un seçtiği deste filtresi
+    var needsReward = false                             // filtre hakkı bitti → view ödül ekranı açsın
+    var noFilterResults = false                         // filtreye uyan film yok → view mesaj göstersin
+
+
     // Odayı gerçek zamanlı dinleme
     func listen(code: String, uid: String) {
         myUID = uid
@@ -109,23 +113,65 @@ final class LobbyViewModel {
         }
     }
 
-    // Host oyunu başlatır popüler filmleri çeker ve odaya deste olarak yazar, fetchPopular ile filmler çekiliyor ardından startGame ile firestore'a yazılıyor
-    func startGame(code: String) async {
+    // Host oyunu başlatır: desteyi kurar (filtre varsa filtreli, yoksa karışık) ve Firestore'a yazar.
+    // Filtreli deste bir filtre hakkı yakar; hak yoksa host ödüllü reklamla kazanır.
+    // Karışık deste (filtresiz) her zaman bedava.
+    func startGame(code: String, credits: FilterCredits) async {
         guard !isStarting else { return }
+
+        let wantsFilter = !deckFilter.isDefault
+        // Filtre istiyor ama hakkı yoksa → ödül ekranı (oyun başlamaz)
+        if wantsFilter && credits.isEmpty {
+            needsReward = true
+            return
+        }
+
         isStarting = true
         defer { isStarting = false }
+
+        // Filtreli deste boş dönerse KARIŞIĞA DÜŞME → host'a "kriterlere uyan film yok" de.
+        let movies: [Movie]
+        if wantsFilter {
+            movies = await filteredDeck()
+            guard !movies.isEmpty else { noFilterResults = true; return }
+        } else {
+            movies = await mixedDeck()
+            guard !movies.isEmpty else { errorMessage = "Deste oluşturulamadı"; return }
+        }
+
         do {
-            let movies = try await tmdb.fetchPopular(page: 1)     // ilk 20 popüler
-            let players = Array((room?.members ?? [:]).keys)       // başlarken herkes oyunda
-            try await roomService.startGame(code: code, movies: movies, page: 1, players: players)
+            let players = Array((room?.members ?? [:]).keys)   // başlarken herkes oyunda
+            // Filtreli deste ise parametreleri odaya yaz → refill aynı filtreyle devam etsin
+            let filterParams = wantsFilter ? deckFilter.discoverParams : nil
+            try await roomService.startGame(code: code, movies: movies, page: 1,
+                                            players: players, filterParams: filterParams)
             // App Review demo modu: simüle partner varsa tüm filmleri "beğenmiş" say
-            // → incelemeci tek cihazda ilk beğenisinde eşleşmeyi görür.
             if room?.members[DemoMode.botUID] != nil {
                 try await roomService.seedDemoLikes(code: code, movieIDs: movies.map(\.id))
             }
+            // Filtreli deste kuruldu → bir hak harca
+            if wantsFilter { credits.spend() }
         } catch {
             errorMessage = error.localizedDescription
         }
     }
-    
+
+    // Filtreli deste: seçili filtreden ilk sayfa (20 film), sıralaması korunur.
+    // Deste bitmeye yakın refill AYNI filtreyle sayfa 2, 3… diye devam eder (odaya kayıtlı).
+    private func filteredDeck() async -> [Movie] {
+        (try? await tmdb.fetchDiscover(filter: deckFilter, page: 1)) ?? []
+    }
+
+    // Bedava: karışık deste — popüler (rastgele sayfa) + yüksek puanlı + rastgele bir tür,
+    // tekrarsız, karıştırılmış. "Hep aynı 20 popüler" hissini kırar.
+    private func mixedDeck() async -> [Movie] {
+        let page = Int.random(in: 1...3)
+        let genreID = [28, 35, 27, 878, 18, 53, 10749, 16].randomElement()!
+        async let a = tmdb.fetchPopular(page: page)
+        async let b = tmdb.fetchDiscover(filter: MovieFilter(sort: .topRated), page: 1)
+        async let c = tmdb.fetchDiscover(filter: MovieFilter(genres: [genreID]), page: 1)
+        let all = ((try? await a) ?? []) + ((try? await b) ?? []) + ((try? await c) ?? [])
+        var seen = Set<Int>()
+        return all.filter { seen.insert($0.id).inserted }.shuffled()
+    }
 }

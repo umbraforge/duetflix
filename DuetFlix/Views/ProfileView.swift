@@ -9,8 +9,9 @@
 import SwiftUI
 
 struct ProfileView: View {
-    @Environment(StoreService.self) private var store
-    @State private var showPaywall = false
+    @Environment(AdService.self) private var ads
+    @Environment(FilterCredits.self) private var credits
+    @State private var showReward = false
     private let loc = LocalizationManager.shared
 
     // Bundledan sürüm + build numarası
@@ -29,7 +30,7 @@ struct ProfileView: View {
                 ScrollView {
                     VStack(spacing: Theme.Spacing.lg) {
                         header
-                        plusCard
+                        creditsCard
                         languageCard
                         aboutCard
                         Spacer(minLength: Theme.Spacing.lg)
@@ -43,46 +44,37 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle(L("tab.profile"))
-            .sheet(isPresented: $showPaywall) {
-                PaywallView().environment(store)   // sheet'e store'u açıkça ver
+            .sheet(isPresented: $showReward) {
+                // sheet environment'ı miras almaz → nesneleri açıkça ver
+                RewardView().environment(ads).environment(credits)
             }
         }
         .tint(.ember)
     }
 
-    // DuetFlix Plus giriş noktası: aktifse rozet, değilse paywall açan kart
-    private var plusCard: some View {
-        Group {
-            if store.isPlus {
-                card {
-                    Label(L("profile.plus_active"), systemImage: "checkmark.seal.fill")
-                        .font(.headline)
+    // Filtre hakkı kartı: bakiyeyi gösterir, dokununca ödüllü reklam ekranını açar
+    private var creditsCard: some View {
+        Button { showReward = true } label: {
+            card {
+                HStack(spacing: Theme.Spacing.md) {
+                    Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                        .font(.title2)
                         .foregroundStyle(Color.ember)
-                }
-            } else {
-                Button { showPaywall = true } label: {
-                    card {
-                        HStack(spacing: Theme.Spacing.md) {
-                            Image(systemName: "sparkles")
-                                .font(.title2)
-                                .foregroundStyle(Color.ember)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(L("profile.get_plus"))
-                                    .font(.headline)
-                                    .foregroundStyle(Color.textPrimary)
-                                Text(L("profile.plus_tagline"))
-                                    .font(.caption)
-                                    .foregroundStyle(Color.textSecondary)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .foregroundStyle(Color.textSecondary)
-                        }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L("profile.credits_title"))
+                            .font(.headline)
+                            .foregroundStyle(Color.textPrimary)
+                        Text(Lf("profile.credits_tagline", credits.balance))
+                            .font(.caption)
+                            .foregroundStyle(Color.textSecondary)
                     }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .foregroundStyle(Color.textSecondary)
                 }
-                .buttonStyle(.plain)
             }
         }
+        .buttonStyle(.plain)
     }
 
     // Header (logo + isim + stüdyo)
@@ -183,5 +175,8 @@ struct ProfileView: View {
 }
 
 #Preview {
-    ProfileView().preferredColorScheme(.dark)
+    ProfileView()
+        .environment(AdService())
+        .environment(FilterCredits())
+        .preferredColorScheme(.dark)
 }

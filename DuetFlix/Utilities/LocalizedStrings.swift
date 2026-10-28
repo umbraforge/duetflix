@@ -23,7 +23,7 @@ enum LocalizedStrings {
         .merging(swipe) { a, _ in a }
         .merging(matches) { a, _ in a }
         .merging(profile) { a, _ in a }
-        .merging(paywall) { a, _ in a }
+        .merging(reward) { a, _ in a }
         .merging(filter) { a, _ in a }
         .merging(a11y) { a, _ in a }
 
@@ -31,6 +31,7 @@ enum LocalizedStrings {
     private static let common: [String: LocPair] = [
         "common.cancel":      ("İptal", "Cancel"),
         "common.close":       ("Kapat", "Close"),
+        "common.done":        ("Tamam", "Done"),
         "common.retry":       ("Tekrar dene", "Retry"),
         "common.change_mode": ("Mod Değiştir", "Change Mode"),
         "common.remove":      ("Listeden çıkar", "Remove from list"),
@@ -125,6 +126,8 @@ enum LocalizedStrings {
         "lobby.info_host":     ("Odayı kapatmak için sol üstten çıkabilirsin", "Close the room from the top-left"),
         "lobby.info_guest":    ("Odadan ayrılmak için sol üstten çıkabilirsin", "Leave the room from the top-left"),
         "lobby.info_ttl":      ("Kullanılmayan odalar 12 saat sonra otomatik silinir", "Unused rooms are automatically deleted after 12 hours"),
+        "lobby.deck_filter":   ("Deste filtresi", "Deck filter"),
+        "lobby.no_filter_results": ("İstediğiniz kriterlerde film bulunamadı", "No movies match your filter"),
         "lobby.deleted":       ("Oda silindi", "Room deleted"),
         "lobby.copied":        ("Oda kodu kopyalandı", "Room code copied"),
         "lobby.closed_by":     ("%@ odayı kapattı", "%@ closed the room"),
@@ -178,42 +181,45 @@ enum LocalizedStrings {
                                 "This product uses the TMDB API but is not endorsed or certified by TMDB."),
     ]
 
-    // Paywall / premium (DuetFlix Plus)
-    private static let paywall: [String: LocPair] = [
-        "paywall.title":          ("DuetFlix Plus", "DuetFlix Plus"),
-        "paywall.subtitle":       ("Tek seferlik satın alma, ömür boyu senin.", "One-time purchase, yours forever."),
-        "paywall.feature_filter": ("Servislerine göre sınırsız filtrele", "Filter by your streaming services, unlimited"),
-        "paywall.feature_group":  ("3-4 kişilik grup odaları kur", "Host group rooms for 3-4 people"),
-        "paywall.feature_support":("Bağımsız bir geliştiriciyi destekle", "Support an indie developer"),
-        "paywall.buy":            ("Plus'ı Aç — %@", "Unlock Plus — %@"),
-        "paywall.buy_plain":      ("Plus'ı Aç", "Unlock Plus"),
-        "paywall.active":         ("Plus aktif", "Plus active"),
-        "paywall.active_note":    ("Tüm premium özellikler açık. Teşekkürler!", "All premium features unlocked. Thank you!"),
-        "paywall.restore":        ("Satın alımları geri yükle", "Restore purchases"),
-        "paywall.once":           ("Abonelik yok · tek seferlik", "No subscription · one-time"),
-        "paywall.unavailable":    ("Şu an kullanılamıyor, sonra tekrar dene", "Currently unavailable, try again later"),
-        "paywall.terms":          ("Kullanım Şartları", "Terms of Use"),
-        "paywall.privacy":        ("Gizlilik", "Privacy"),
+    // Ödüllü reklam (filtre hakkı kazanma)
+    private static let reward: [String: LocPair] = [
+        "reward.title":            ("Filtre hakkı kazan", "Earn filter credits"),
+        "reward.subtitle":         ("Kısa bir reklam izle, filtrelemeye devam et.",
+                                    "Watch a short ad and keep filtering."),
+        "reward.balance_label":    ("kalan filtre hakkı", "filter credits left"),
+        "reward.watch":            ("Reklam izle · +%d hak", "Watch ad · +%d credits"),
+        "reward.earned_title":     ("Hakların yüklendi", "Credits added"),
+        "reward.earned_subtitle":  ("+%d filtre hakkı hesabına eklendi.", "+%d filter credits added."),
+        "reward.continue":         ("Devam et", "Continue"),
+        "reward.not_finished":     ("Reklam tamamlanmadı — hak kazanmak için sonuna kadar izlemen gerekiyor.",
+                                    "Ad not completed — watch it through to earn credits."),
+        "reward.unavailable":      ("Şu an gösterilecek reklam yok, biraz sonra tekrar dene.",
+                                    "No ad available right now, try again shortly."),
+        "reward.why":              ("Reklamlar DuetFlix'i herkes için ücretsiz tutuyor. Eşleştirme, fragmanlar ve izleme listesi her zaman bedava.",
+                                    "Ads keep DuetFlix free for everyone. Matching, trailers and your watchlist are always free."),
+        "reward.privacy":          ("Gizlilik", "Privacy"),
         // Profil giriş noktası
-        "profile.get_plus":       ("DuetFlix Plus'a geç", "Get DuetFlix Plus"),
-        "profile.plus_tagline":   ("Filtreler + grup odaları", "Filters + group rooms"),
-        "profile.plus_active":    ("DuetFlix Plus ✓", "DuetFlix Plus ✓"),
+        "profile.credits_title":   ("Filtre hakkı", "Filter credits"),
+        "profile.credits_tagline": ("%d hak · reklam izleyip çoğalt", "%d credits · watch an ad for more"),
     ]
 
-    // Keşfet filtresi (Plus)
+    // Keşfet filtresi
     private static let filter: [String: LocPair] = [
         "filter.title":         ("Filtrele", "Filter"),
         "filter.genre":         ("Tür", "Genre"),
         "filter.platform":      ("Platform", "Platform"),
         "filter.runtime":       ("Süre", "Runtime"),
+        "filter.rating":        ("Puan", "Rating"),
         "filter.sort":          ("Sırala", "Sort"),
         "filter.apply":         ("Filtreyi uygula", "Apply filter"),
+        "filter.edit":          ("Filtrele", "Filters"),
         "filter.reset":         ("Sıfırla", "Reset"),
         "filter.sort.popular":  ("Popüler", "Popular"),
         "filter.sort.top_rated":("Puana göre", "Top rated"),
         "filter.sort.newest":   ("En yeni", "Newest"),
-        "filter.free_left":     ("%d bedava filtreleme hakkın kaldı", "%d free filters left"),
-        "filter.free_over":     ("Sınırsız filtre için DuetFlix Plus", "Get DuetFlix Plus for unlimited filters"),
+        "filter.credits_left":  ("%d filtreleme hakkın kaldı", "%d filter credits left"),
+        "filter.credits_over":  ("Hakkın bitti — reklam izleyip yeni hak kazan",
+                                 "Out of credits — watch an ad to earn more"),
         "filter.idle_hint":     ("Filtre seç ve uygula", "Pick filters and apply"),
         "filter.empty":         ("Bu filtrelerle film bulunamadı", "No movies match these filters"),
     ]

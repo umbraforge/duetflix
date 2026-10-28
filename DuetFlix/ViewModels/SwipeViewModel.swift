@@ -30,6 +30,7 @@ final class SwipeViewModel {
     private var uid = ""
     private var roomCode = ""
     private var deckPage = 1
+    private var deckParams: DiscoverParams?   // filtreli deste ise refill bunu kullanır
     private var didInitIndex = false         // konumu Firestore'dan sadece bir kez oku
     private var isRefilling = false
     private var seenMatchIDs: Set<Int> = []  // daha önce kutladığımız eşleşmeler
@@ -54,6 +55,7 @@ final class SwipeViewModel {
         listener = roomRef.addSnapshotListener { [weak self] snapshot, _ in
             guard let self, let room = try? snapshot?.data(as: Room.self) else { return }
             self.deckPage = room.deckPage ?? 1
+            self.deckParams = room.deckFilter   // filtreli deste ise refill'de kullanılacak
             self.likeCount = room.likes?[uid]?.count ?? 0
             self.memberNames = room.members.values.sorted()   // geçmiş kaydı için
             // Konumu yalnızca ilk snapshot'ta oku (devam edince kaldığı yerden başlasın)
@@ -162,7 +164,13 @@ final class SwipeViewModel {
         defer { isRefilling = false }
         let nextPage = deckPage + 1
         do {
-            let movies = try await tmdb.fetchPopular(page: nextPage)
+            // Filtreli deste ise aynı filtreyle devam et; değilse popüler
+            let movies: [Movie]
+            if let deckParams {
+                movies = try await tmdb.fetchDiscover(params: deckParams, page: nextPage)
+            } else {
+                movies = try await tmdb.fetchPopular(page: nextPage)
+            }
             try await roomService.appendDeck(code: code, movies: movies, page: nextPage)
             refillError = false
         } catch {

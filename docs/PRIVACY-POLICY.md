@@ -1,6 +1,6 @@
 # Privacy Policy — DuetFlix
 
-_Last updated: 2026-07-07_
+_Last updated: 2026-10-28_
 
 > Bu metni bir web sayfasına koyup (GitHub Pages, Notion, kişisel site vb.) URL'sini
 > App Store Connect'teki **Privacy Policy URL** alanına gir. Aşağıda İngilizce (birincil)
@@ -25,15 +25,25 @@ the app handles and why. We designed DuetFlix to collect as little as possible.
   tied to the room, not to your identity.
 - **Watchlist.** Films you save in Solo mode are stored **only on your device**
   (SwiftData) and are never uploaded.
+- **Advertising.** The app shows **optional** rewarded video ads: you choose to watch one
+  in order to earn filter credits. Matching, trailers and your watchlist never require an
+  ad. Ads are delivered by Google AdMob, which receives technical data such as your device
+  model, operating system version, and the approximate (country-level) location derived
+  from your IP address, in order to serve and measure ads.
 
 ### What we do NOT do
 - We do not collect your name, email, phone number, or precise location.
-- We do not show ads and do not track you across other apps or websites.
-- We do not sell or share your data with advertisers.
+- We do not track you across other apps or websites. The app never asks for App Tracking
+  Transparency permission, so advertising receives no IDFA identifier and cannot build a
+  cross-app profile of you.
+- We do not sell your data.
 
 ### Third-party services
 - **Firebase (Google)** provides anonymous authentication and the Firestore database that
   powers real-time matching. See Google's privacy policy at policies.google.com/privacy.
+- **Google AdMob** serves the optional rewarded ads described above. See Google's privacy
+  policy at policies.google.com/privacy. If you are in the EU or UK, a consent screen is
+  shown before any personalized advertising; you can decline and still use the app.
 - **The Movie Database (TMDB)** is the source of all film information (titles, posters,
   descriptions). The app requests film data and search terms from TMDB; no personal data
   is sent to TMDB.
@@ -72,15 +82,26 @@ veri toplayacak şekilde tasarlandı.
   kimliğinle değil, odayla ilişkilidir.
 - **İzleme listesi.** Solo modunda kaydettiğin filmler **yalnızca cihazında** (SwiftData)
   saklanır ve hiçbir yere yüklenmez.
+- **Reklamlar.** Uygulama **isteğe bağlı** ödüllü video reklamlar gösterir: filtre hakkı
+  kazanmak için reklam izlemeyi sen seçersin. Eşleştirme, fragmanlar ve izleme listesi
+  hiçbir zaman reklam gerektirmez. Reklamlar Google AdMob tarafından sunulur; AdMob,
+  reklamı iletmek ve ölçmek için cihaz modeli, işletim sistemi sürümü ve IP adresinden
+  türetilen yaklaşık (ülke düzeyinde) konum gibi teknik verileri alır.
 
 ### Yapmadıklarımız
 - Adını, e-postanı, telefon numaranı veya kesin konumunu toplamıyoruz.
-- Reklam göstermiyoruz ve seni başka uygulama/sitelerde takip etmiyoruz.
-- Verilerini reklamcılarla satmıyor veya paylaşmıyoruz.
+- Seni başka uygulama ya da sitelerde takip etmiyoruz. Uygulama hiçbir zaman App Tracking
+  Transparency izni istemez; bu nedenle reklam tarafına IDFA tanımlayıcısı verilmez ve
+  uygulamalar arası bir profilin çıkarılamaz.
+- Verilerini satmıyoruz.
 
 ### Üçüncü taraf hizmetler
 - **Firebase (Google):** anonim kimlik doğrulama ve gerçek zamanlı eşleşmeyi sağlayan
   Firestore veritabanını sunar. Google'ın gizlilik politikası: policies.google.com/privacy.
+- **Google AdMob:** yukarıda anlatılan isteğe bağlı ödüllü reklamları sunar. Google'ın
+  gizlilik politikası: policies.google.com/privacy. AB veya İngiltere'deysen,
+  kişiselleştirilmiş reklam öncesinde bir rıza ekranı gösterilir; reddedip uygulamayı
+  kullanmaya devam edebilirsin.
 - **The Movie Database (TMDB):** tüm film bilgilerinin (başlık, poster, açıklama)
   kaynağıdır. Uygulama TMDB'den film verisi ve arama terimleri ister; TMDB'ye kişisel veri
   gönderilmez.

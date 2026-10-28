@@ -2,17 +2,19 @@
 //  FilterView.swift
 //  DuetFlix
 //
-//  Keşfet filtresi (Plus): tür + platform + süre + sıralama → sonuç ızgarası.
-//  Bedava kullanıcı 2 kez uygulayabilir, sonra paywall.
+//  Keşfet filtresi: tür + platform + süre + puan + sıralama → sonuç ızgarası.
+//  Her uygulama bir filtre hakkı yakar; hak bitince ödüllü reklamla kazanılır.
 //
 
 import SwiftUI
 import SwiftData   // .modelContainer (DetailView'in @Query'si için)
 
 struct FilterView: View {
-    @Environment(StoreService.self) private var store
+    @Environment(AdService.self) private var ads
+    @Environment(FilterCredits.self) private var credits
     @Environment(\.dismiss) private var dismiss
     @State private var viewModel = FilterViewModel()
+    @State private var editing = true   // true: filtre seçimi · false: sonuç ızgarası
 
     var body: some View {
         NavigationStack {
@@ -21,12 +23,16 @@ struct FilterView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: Theme.Spacing.lg) {
-                        genreSection
-                        providerSection
-                        runtimeSection
-                        sortSection
-                        applySection
-                        resultsSection
+                        if editing {
+                            genreSection
+                            providerSection
+                            runtimeSection
+                            ratingSection
+                            sortSection
+                            applySection
+                        } else {
+                            resultsSection
+                        }
                     }
                     .padding()
                 }
@@ -38,13 +44,18 @@ struct FilterView: View {
                     Button(L("common.close")) { dismiss() }
                 }
                 ToolbarItem(placement: .topBarTrailing) {
-                    if !viewModel.filter.isDefault || !viewModel.results.isEmpty {
-                        Button(L("filter.reset")) { viewModel.reset() }
+                    if editing {
+                        if !viewModel.filter.isDefault {
+                            Button(L("filter.reset")) { viewModel.reset() }
+                        }
+                    } else {
+                        // Sonuçlardayken filtreye geri dön (seçimler + sonuçlar korunur)
+                        Button(L("filter.edit")) { editing = true }
                     }
                 }
             }
-            .sheet(isPresented: $viewModel.showPaywall) {
-                PaywallView().environment(store)
+            .sheet(isPresented: $viewModel.showReward) {
+                RewardView().environment(ads).environment(credits)
             }
         }
         .tint(.ember)
@@ -76,8 +87,18 @@ struct FilterView: View {
     private var runtimeSection: some View {
         section(L("filter.runtime")) {
             chipRow(RuntimeRange.allCases) { r in
-                chip(r.label, selected: viewModel.filter.runtime == r) {
+                chip(r.label, selected: viewModel.filter.runtimes.contains(r)) {
                     viewModel.toggleRuntime(r)
+                }
+            }
+        }
+    }
+
+    private var ratingSection: some View {
+        section(L("filter.rating")) {
+            chipRow(MinRating.allCases) { r in
+                chip(r.label, selected: viewModel.filter.minRating == r) {
+                    viewModel.toggleRating(r)
                 }
             }
         }
@@ -93,11 +114,14 @@ struct FilterView: View {
         }
     }
 
-    // Uygula butonu + bedava hak bilgisi
+    // Uygula butonu + kalan hak bilgisi
     private var applySection: some View {
         VStack(spacing: Theme.Spacing.sm) {
             Button {
-                Task { await viewModel.apply(isPlus: store.isPlus) }
+                Task {
+                    await viewModel.apply(credits: credits)
+                    if !viewModel.showReward { editing = false }   // sonuç geldi → filtreyi kapat
+                }
             } label: {
                 HStack(spacing: Theme.Spacing.sm) {
                     if viewModel.state == .loading {
@@ -116,13 +140,12 @@ struct FilterView: View {
             }
             .disabled(viewModel.state == .loading)
 
-            if !store.isPlus {
-                Text(viewModel.freeUsesLeft > 0
-                     ? Lf("filter.free_left", viewModel.freeUsesLeft)
-                     : L("filter.free_over"))
-                    .font(.caption)
-                    .foregroundStyle(Color.textSecondary)
-            }
+            // Kalan hak — bitince "reklam izle" ipucu
+            Text(credits.isEmpty
+                 ? L("filter.credits_over")
+                 : Lf("filter.credits_left", credits.balance))
+                .font(.caption)
+                .foregroundStyle(Color.textSecondary)
         }
     }
 
@@ -144,7 +167,7 @@ struct FilterView: View {
             }
         case .error:
             ErrorView(message: L("search.error")) {
-                Task { await viewModel.apply(isPlus: store.isPlus) }
+                Task { await viewModel.apply(credits: credits) }
             }
         case .loaded:
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 12) {
