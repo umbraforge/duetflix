@@ -34,6 +34,25 @@ its code with a friend on a second device.)
 Solo mode also works fully on a single device: browse popular films, search, filter,
 open a film's details, and add films to a local watchlist.
 
+=== WHAT'S NEW IN 1.1 (where to find each feature) ===
+- Home (Solo): mood-based movie rows and a "Roll the dice" button that picks a random film.
+- Movie detail: the play button on the backdrop plays the official trailer (embedded YouTube player).
+- Filters (Discover tab -> filter icon): genre, streaming service, runtime,
+  minimum rating and sort order. Applying a filter uses 1 filter credit.
+- Duo: the room host can tap "Deck filter" in the lobby before starting to build a filtered
+  deck (uses 1 filter credit per game). An unfiltered mixed deck is always free.
+- Duo rooms now open, join and close instantly (performance improvement).
+- Profile: "Filter credits" card shows the balance and lets the user earn more.
+
+=== OPTIONAL REWARDED ADS (new in 1.1) ===
+The app has no in-app purchases. Core features (Solo browsing, trailers, watchlist and
+Duo matching) are always free and never require watching an ad. Only the optional
+advanced filters use "filter credits": every user gets 5 free credits, and can
+optionally watch a rewarded video ad (Google AdMob) to earn +2 more. Ads are shown
+only when the user taps "Watch ad". The app does not request App Tracking Transparency
+permission and does not track users; ads are non-personalized. If no ad is available,
+a short message is shown and the rest of the app keeps working.
+
 Film data and images are provided by The Movie Database (TMDB) via their public API,
 with attribution shown on the Profile screen and in the app description.
 
@@ -57,7 +76,17 @@ verisi topluyor). Aşağıdaki maddeleri işaretle:
 | **User Content** (Duo'da yazılan görünen ad) | Evet | App Functionality | Hayır | Hayır |
 | **Other Usage Data** (beğeni/eşleşme, oda içi) | Evet | App Functionality | Hayır | Hayır |
 
-- **Tracking:** "Are you tracking?" → **No** (reklam/çapraz-uygulama takibi yok).
+**v1.1 — AdMob (ödüllü reklam) için EK satırlar** (Google'ın Mobile Ads SDK beyan rehberine göre):
+
+| Veri türü | Amaç | Kimliğe bağlı mı | Takip için mi |
+|---|---|---|---|
+| **Location → Coarse Location** (IP'den yaklaşık konum) | Third-Party Advertising, Analytics | Hayır | Hayır |
+| **Identifiers → Device ID** (IDFV; ATT yok → IDFA yok) | Third-Party Advertising, Analytics | Hayır | Hayır |
+| **Usage Data → Product Interaction** | Third-Party Advertising, Analytics | Hayır | Hayır |
+| **Usage Data → Advertising Data** | Third-Party Advertising, Analytics | Hayır | Hayır |
+| **Diagnostics → Crash Data, Performance Data, Other Diagnostic Data** | Analytics | Hayır | Hayır |
+
+- **Tracking:** "Are you tracking?" → **No**. ATT izni istemiyoruz, IDFA alınmıyor, reklamlar kişiselleştirilmemiş.
 - İzleme listesi cihazda tutulur, yüklenmez → beyan gerektirmez.
 - ⚠️ **Eğer Firebase Analytics eklediysen:** ayrıca "Identifiers → Device ID" ve
   "Usage Data → Product Interaction" işaretlemen gerekir. Analytics kullanmıyorsan

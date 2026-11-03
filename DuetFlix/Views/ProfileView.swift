@@ -134,7 +134,7 @@ struct ProfileView: View {
         }
     }
 
-    // Hakkında kartı (sürüm + TMDB atfı)
+    // Hakkında kartı (sürüm + gizlilik politikası + TMDB atfı)
     private var aboutCard: some View {
         card {
             VStack(alignment: .leading, spacing: Theme.Spacing.md) {
@@ -142,6 +142,18 @@ struct ProfileView: View {
                     Text(L("profile.version")).foregroundStyle(Color.textPrimary)
                     Spacer()
                     Text(appVersion).foregroundStyle(Color.textSecondary)
+                }
+
+                Divider().overlay(Color.white.opacity(0.06))
+
+                // Apple 5.1.1(i): gizlilik politikası uygulama içinde kolay erişilebilir olmalı.
+                // Reklam ekranında da var ama Profil herkesin bakacağı standart yer.
+                Link(destination: URL(string: "https://umbraforge.github.io/duetflix/site/privacy.html")!) {
+                    HStack {
+                        Text(L("profile.privacy")).foregroundStyle(Color.textPrimary)
+                        Spacer()
+                        Image(systemName: "arrow.up.right").foregroundStyle(Color.textSecondary)
+                    }
                 }
 
                 Divider().overlay(Color.white.opacity(0.06))

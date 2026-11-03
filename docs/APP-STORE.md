@@ -5,7 +5,7 @@ Karakter sınırları başlıklarda belirtildi.
 
 > Kategori: **Entertainment** (birincil) · isteğe bağlı ikincil: **Lifestyle**
 > Yaş sınırı: film içeriği/posterleri nedeniyle muhtemelen **12+** (App Store anketinde "Nadir/Hafif" seçeneklerini işaretle).
-> Fiyat: Ücretsiz (premium sonradan In-App Purchase olarak eklenecek).
+> Fiyat: Ücretsiz. Gelir: isteğe bağlı ödüllü reklam (v1.1'den itibaren, bkz. docs/MONETIZATION.md).
 
 ---
 
@@ -60,6 +60,20 @@ film,dizi,izle,eşleşme,çift,birlikte,öneri,izleme,listesi,sinema,akşam,keş
 DuetFlix ile tanışın! Duo modunda arkadaşınla eşleş, Solo modunda keşfet. İlk sürümümüz — geri bildirimlerini bekliyoruz.
 ```
 
+### Sürüm Notları — v1.1
+```
+DuetFlix 1.1 geldi!
+
+• Yeni ana sayfa: ruh haline göre film satırları ve kararsız kalanlar için 🎲 Zar at
+• Film detayında fragman izle
+• Gelişmiş filtreler: tür, yayın platformu, süre, puan ve sıralama
+• Duo'da filtreli deste: odayı kuran, desteyi zevkinize göre daraltabilir
+• Duo odaları artık anında açılıyor ve kapanıyor
+• Filtre hakkı: başlangıçta 5 hak hediye; dilersen kısa bir reklam izleyerek +2 hak kazan. Eşleşme, fragman ve izleme listesi her zaman ücretsiz.
+
+Geri bildirimlerin bizim için çok değerli — keyifli seyirler!
+```
+
 ---
 
 ## 🇬🇧 English
@@ -111,6 +125,20 @@ movie,film,match,couple,watch,together,pick,watchlist,cinema,discover,swipe,nigh
 ### What's New (first release)
 ```
 Meet DuetFlix! Match with a friend in Duo mode, or explore in Solo mode. This is our first release — we'd love your feedback.
+```
+
+### What's New — v1.1
+```
+DuetFlix 1.1 is here!
+
+• New home screen: mood-based movie rows, plus a 🎲 Roll the dice pick when you can't decide
+• Watch trailers right on the movie page
+• Advanced filters: genre, streaming service, runtime, rating and sorting
+• Filtered Duo decks: the host can narrow the deck to your shared taste
+• Duo rooms now open and close instantly
+• Filter credits: 5 free credits to start; optionally watch a short ad to earn +2 more. Matching, trailers and your watchlist are always free.
+
+We'd love your feedback — enjoy movie night!
 ```
 
 ---

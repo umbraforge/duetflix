@@ -177,6 +177,7 @@ enum LocalizedStrings {
         "profile.about":       ("Hakkında", "About"),
         "profile.version":     ("Sürüm", "Version"),
         "profile.data_source": ("Film verileri", "Film data"),
+        "profile.privacy":     ("Gizlilik Politikası", "Privacy Policy"),
         "profile.tmdb_attr":   ("Bu uygulama TMDB API'sini kullanır ancak TMDB tarafından onaylanmış ya da sertifikalandırılmış değildir.",
                                 "This product uses the TMDB API but is not endorsed or certified by TMDB."),
     ]
