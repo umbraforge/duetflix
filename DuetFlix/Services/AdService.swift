@@ -37,15 +37,13 @@ final class AdService {
         #endif
     }
 
-    #if DEBUG
-    // Normalde gerekmez: DEBUG zaten örnek test birimini kullanıyor, simülatör de
-    // otomatik test cihazı sayılır. Yalnızca canlı birimi bilerek denemek istediğinde
-    // (ör. hesap onaylandıktan sonra, Archive'dan önce gerçek telefonda bir kez
-    // doğrulamak için) buraya cihazını ekle — yoksa gerçek reklama tıklamak
-    // geçersiz trafik sayılır. Kimlik, fiziksel cihazda ilk istekte konsola basılır:
+    // Test cihazları: bu listedeki cihazlar CANLI birimden bile "Test Ad" etiketli reklam
+    // alır → kendi telefonunda canlı kurulumu (App ID + birim ID) gerçek trafik yaratmadan,
+    // hesabı riske atmadan doğrularsın. Release'te de geçerli olmalı, çünkü canlı birim
+    // yalnızca Release'te kullanılıyor; listede sadece senin cihazın olduğu için başka
+    // kullanıcıyı etkilemez. Kimlik, cihazda ilk istekte Xcode konsoluna basılır:
     //   <Google> To get test ads on this device, set: ...testDeviceIdentifiers = @[ @"HASH" ]
-    static let testDeviceIDs: [String] = []
-    #endif
+    static let testDeviceIDs: [String] = ["e91752d5d3477680a9f8513796e5ee3f"]   // Batuhan'ın iPhone'u
 
     enum State { case idle, loading, ready, unavailable }
 
@@ -57,10 +55,8 @@ final class AdService {
 
     // Açılışta bir kez: rıza (AB/İngiltere) → SDK başlat → ilk reklamı hazırla.
     func start() async {
-        #if DEBUG
         // SDK başlamadan ÖNCE ayarlanmalı, sonra ayarlanırsa ilk istekte etkisiz kalır.
         MobileAds.shared.requestConfiguration.testDeviceIdentifiers = Self.testDeviceIDs
-        #endif
         await requestConsent()
         await MobileAds.shared.start()
         await preload()
@@ -76,13 +72,13 @@ final class AdService {
         } catch {
             rewarded = nil
             state = .unavailable
-            #if DEBUG
-            // Yükleme neden başarısız? Yaygın kodlar: 1 = geçersiz istek (birim ID yanlış),
+            // Yükleme neden başarısız? (Release'te de basılır → canlı birimi cihazda
+            // test ederken hata kodunu görebilmek için. Kullanıcıya görünmez.)
+            // Yaygın kodlar: 1 = geçersiz istek (birim ID yanlış),
             // 2 = ağ, 3 = noFill (gösterilecek reklam yok — yeni birim / kısıtlı sunum),
             // 8 = uygulama kimliği eksik veya hatalı.
             let ns = error as NSError
             print("‼️ AdMob yükleme hatası — kod \(ns.code) · \(ns.domain) · \(ns.localizedDescription)")
-            #endif
         }
     }
 
