@@ -43,6 +43,7 @@ open a film's details, and add films to a local watchlist.
   deck (uses 1 filter credit per game). An unfiltered mixed deck is always free.
 - Duo rooms now open, join and close instantly (performance improvement).
 - Profile: "Filter credits" card shows the balance and lets the user earn more.
+- Profile: "Privacy Policy" link in the About card (also linked from the reward screen).
 
 === OPTIONAL REWARDED ADS (new in 1.1) ===
 The app has no in-app purchases. Core features (Solo browsing, trailers, watchlist and
@@ -50,7 +51,8 @@ Duo matching) are always free and never require watching an ad. Only the optiona
 advanced filters use "filter credits": every user gets 5 free credits, and can
 optionally watch a rewarded video ad (Google AdMob) to earn +2 more. Ads are shown
 only when the user taps "Watch ad". The app does not request App Tracking Transparency
-permission and does not track users; ads are non-personalized. If no ad is available,
+permission, does not access the advertising identifier (IDFA) and does not track users.
+If no ad is available,
 a short message is shown and the rest of the app keeps working.
 
 Film data and images are provided by The Movie Database (TMDB) via their public API,
@@ -86,7 +88,7 @@ verisi topluyor). Aşağıdaki maddeleri işaretle:
 | **Usage Data → Advertising Data** | Third-Party Advertising, Analytics | Hayır | Hayır |
 | **Diagnostics → Crash Data, Performance Data, Other Diagnostic Data** | Analytics | Hayır | Hayır |
 
-- **Tracking:** "Are you tracking?" → **No**. ATT izni istemiyoruz, IDFA alınmıyor, reklamlar kişiselleştirilmemiş.
+- **Tracking:** "Are you tracking?" → **No**. ATT izni istemiyoruz, IDFA alınmıyor (reklam kimliği yok → çapraz uygulama takibi yok).
 - İzleme listesi cihazda tutulur, yüklenmez → beyan gerektirmez.
 - ⚠️ **Eğer Firebase Analytics eklediysen:** ayrıca "Identifiers → Device ID" ve
   "Usage Data → Product Interaction" işaretlemen gerekir. Analytics kullanmıyorsan
